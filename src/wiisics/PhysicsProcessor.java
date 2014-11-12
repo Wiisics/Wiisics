@@ -6,6 +6,7 @@ package wiisics;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.io.*;
 
 /**
  *
@@ -25,9 +26,17 @@ public class PhysicsProcessor {
     private double[] displacement = new double[3];
     private double[] lastDisplacement = new double[3];
     
+    private PrintWriter writer;
+    
     public PhysicsProcessor() {
         beginTime = System.currentTimeMillis();
-        thisTime = System.currentTimeMillis();
+        thisTime = System.currentTimeMillis(); 
+        
+        try {
+            PrintWriter writer = new PrintWriter("log.csv", "UTF-8");
+        } catch (Exception e) {
+            
+        }
     }
 
     public void update(double xInput, double yInput, double zInput) {
@@ -37,15 +46,17 @@ public class PhysicsProcessor {
         lastAcceleration[1] = acceleration[1];
         lastAcceleration[2] = acceleration[2];
 
-        acceleration[0] = (int) (xInput / 5 * 300) + 300;
-        acceleration[1] = (int) (yInput / 5 * 300) + 300;
-        acceleration[2] = (int) (zInput / 5 * 300) + 300;
+        acceleration[0] = xInput; //(int) (xInput / 5 * 300) + 300;
+        acceleration[1] = yInput; //(int) (yInput / 5 * 300) + 300;
+        acceleration[2] = zInput; //(int) (zInput / 5 * 300) + 300;
 
         if (lastTime != 0) {
             // Insert velocity, displacement calculation here
         }
 
         lastTime = thisTime;
+        
+        writer.printf("%d;%3f;%3f;%3f/n", thisTime, acceleration[0], acceleration[1], acceleration[2]);
     }
     
     public double[] getAcceleration() {
