@@ -17,6 +17,9 @@ public class PhysicsProcessor {
     private long thisTime = 0;
     private long lastTime = 0;
     
+    private double pitch = 0;
+    private double roll = 0;
+    
     private double[] acceleration = new double[3];
     private double[] lastAcceleration = new double[3];
     
@@ -31,32 +34,30 @@ public class PhysicsProcessor {
     public PhysicsProcessor() {
         beginTime = System.currentTimeMillis();
         thisTime = System.currentTimeMillis(); 
-        
-        try {
-            PrintWriter writer = new PrintWriter("log.csv", "UTF-8");
-        } catch (Exception e) {
-            
-        }
     }
 
-    public void update(double xInput, double yInput, double zInput) {
-        long thisTime = System.currentTimeMillis();
+    public void update(double xInput, double yInput, double zInput, double pitch, double roll) {
+        lastTime = thisTime;
+        thisTime = System.currentTimeMillis();
 
+        this.pitch = pitch;
+        this.roll = roll;
+        
         lastAcceleration[0] = acceleration[0];
         lastAcceleration[1] = acceleration[1];
         lastAcceleration[2] = acceleration[2];
 
-        acceleration[0] = xInput; //(int) (xInput / 5 * 300) + 300;
-        acceleration[1] = yInput; //(int) (yInput / 5 * 300) + 300;
-        acceleration[2] = zInput; //(int) (zInput / 5 * 300) + 300;
+        acceleration[0] = xInput;
+        acceleration[1] = yInput;
+        acceleration[2] = zInput - 1;
 
         if (lastTime != 0) {
             // Insert velocity, displacement calculation here
         }
-
-        lastTime = thisTime;
         
-        writer.printf("%d;%3f;%3f;%3f/n", thisTime, acceleration[0], acceleration[1], acceleration[2]);
+        double totalAcc = Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2));
+        
+        //System.out.printf("%d;%.3f;%.3f;%.3f;%.3f\n", thisTime, acceleration[0], acceleration[1], acceleration[2], totalAcc);
     }
     
     public double[] getAcceleration() {
@@ -85,6 +86,10 @@ public class PhysicsProcessor {
      
     public long getTime() {
         return thisTime;
+    }
+    
+    public long getBeginTime() {
+        return beginTime;
     }
     
     public long getLastTime() {
