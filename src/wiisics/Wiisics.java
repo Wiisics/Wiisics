@@ -48,10 +48,9 @@ public class Wiisics extends WiiRemoteAdapter {
             pixels = new int[800][600];
             graph = new JPanel() {
                 public void paintComponent(Graphics graphics) {
-                    int time = physics.getTime();
+                    int time = (int) physics.getTime();
                     
                     if (time >= 800 || accelerometerSource != lastSource) {
-                        physics.setTime(0);
                         lastSource = accelerometerSource;
                         graphics.clearRect(0, 0, 800, 600);
                         graphics.fillRect(0, 0, 800, 600);
@@ -93,8 +92,6 @@ public class Wiisics extends WiiRemoteAdapter {
                     System.out.println("Failed to connect remote. Trying again.");
                 }
             }
-
-            beginTime = System.currentTimeMillis();
 
             remote.addWiiRemoteListener(new Wiisics(remote));
             remote.setAccelerometerEnabled(true);

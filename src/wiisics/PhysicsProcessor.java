@@ -12,49 +12,34 @@ import java.math.RoundingMode;
  * @author funstein
  */
 public class PhysicsProcessor {
-
-    private int t = 0;
-    private int aX = 0;
-    private int aY = 0;
-    private int aZ = 0;
-    private int lastX = 0;
-    private int lastY = 0;
-    private int lastZ = 0;
-    public double lastHeight = 0;
-    public double height = 0;
-    public double lastVelocity = 0;
-    public double velocity = 0;
-    public long lastTime = 0;
-    public long beginTime = 0;
-    public long lastCalibTime = 0;
-    public double zeroAcc = 0;
-    public long lastAccChangeTime = 0;
-    public double lastAcc = 0
+    private long beginTime = 0;
+    private long thisTime = 0;
+    private long lastTime = 0;
+    
+    private double[] acceleration = new double[3];
+    private double[] lastAcceleration = new double[3];
+    
+    private double[] velocity = new double[3];
+    private double[] lastVelocity = new double[3];
+    
+    private double[] displacement = new double[3];
+    private double[] lastDisplacement = new double[3];
+    
+    public PhysicsProcessor() {
+        beginTime = System.currentTimeMillis();
+        thisTime = System.currentTimeMillis();
+    }
 
     public void update(double xInput, double yInput, double zInput) {
         long thisTime = System.currentTimeMillis();
-        double acc = round(zInput, 3);
-        if (beginTime > 0 && thisTime - beginTime < 5000) {
-            long deltaT = thisTime - lastCalibTime;
-            zeroAcc = zeroAcc + (acc * deltaT);
 
-            lastCalibTime = thisTime;
+        lastAcceleration[0] = acceleration[0];
+        lastAcceleration[1] = acceleration[1];
+        lastAcceleration[2] = acceleration[2];
 
-            if (thisTime - beginTime > 5000) {
-                zeroAcc = zeroAcc / (thisTime - beginTime);
-                beginTime = -1;
-            }
-        }
-
-        lastX = aX;
-        lastY = aY;
-        lastZ = aZ;
-
-        aX = (int) (xInput / 5 * 300) + 300;
-        aY = (int) (yInput / 5 * 300) + 300;
-        aZ = (int) (zInput / 5 * 300) + 300;
-
-        t++;
+        acceleration[0] = (int) (xInput / 5 * 300) + 300;
+        acceleration[1] = (int) (yInput / 5 * 300) + 300;
+        acceleration[2] = (int) (zInput / 5 * 300) + 300;
 
         if (lastTime != 0) {
             // Insert velocity, displacement calculation here
@@ -64,7 +49,35 @@ public class PhysicsProcessor {
     }
     
     public double[] getAcceleration() {
-        double[] result = {
+        return acceleration;
+    }
+    
+    public double[] getLastAcceleration() {
+        return lastAcceleration;
+    }
+    
+    public double[] getVelocity() {
+        return velocity;
+    }
+    
+    public double[] getLastVelocity() {
+        return lastVelocity;
+    }
+    
+    public double[] getDisplacement() {
+        return displacement;
+    }
+    
+    public double[] getLastDisplacement() {
+        return lastDisplacement;
+    }
+     
+    public long getTime() {
+        return thisTime;
+    }
+    
+    public long getLastTime() {
+        return lastTime;
     }
 
     public static double round(double value, int places) {
