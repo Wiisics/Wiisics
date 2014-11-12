@@ -75,8 +75,8 @@ public class Wiisics extends WiiRemoteAdapter {
                     int oldX = (int) (((lastTime - beginTime) / 1000.0) * 80);
                     int newX = (int) (((time - beginTime) / 1000.0) * 80);
 
-                    double[] acceleration = physics.getAcceleration();
-                    double[] lastAcceleration = physics.getLastAcceleration();
+                    double[] acceleration = physics.getVelocity();
+                    double[] lastAcceleration = physics.getLastVelocity();
 
                     int totalAcc = 300 - ((int) (Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2)) * 75));
                     int lastTotalAcc = 300 - ((int) (Math.sqrt(Math.pow(lastAcceleration[0], 2) + Math.pow(lastAcceleration[1], 2) + Math.pow(lastAcceleration[2], 2)) * 75));

@@ -47,19 +47,19 @@ public class PhysicsProcessor {
         lastAcceleration[1] = acceleration[1];
         lastAcceleration[2] = acceleration[2];
 
-        acceleration[0] = xInput;
-        acceleration[1] = yInput;
-        acceleration[2] = zInput - 1;
+        acceleration[0] = round(xInput, 2);
+        acceleration[1] = round(yInput, 2);
+        acceleration[2] = round(zInput - 1, 2);
         
         lastVelocity[0] = velocity[0];
-        lastVelocity[1] = velocity[2];
+        lastVelocity[1] = velocity[1];
         lastVelocity[2] = velocity[2];
         
         //if(!(velocity[0])== 0 && velocity[1])== 0 && velocity[2])== 0))
-        
-        velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * (thisTime-lastTime) + lastVelocity[0];
-        velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * (thisTime-lastTime) + lastVelocity[1];
-        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * (thisTime-lastTime) + lastVelocity[1];
+        long deltaT = thisTime - lastTime;
+        velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * deltaT + lastVelocity[0];
+        velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * deltaT + lastVelocity[1];
+        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * deltaT + lastVelocity[2];
         
 
         if (lastTime != 0) {
