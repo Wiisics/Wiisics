@@ -87,20 +87,21 @@ public class Wiisics extends WiiRemoteAdapter {
                     System.out.printf("%d, %d\n", newX, totalAcc);
 
                     /*
-                     * graphics.setColor(Color.RED);
+                     graphics.setColor(Color.RED);
                      graphics.drawLine(oldX, (int) lastAcceleration[0] * 100, newX, (int) acceleration[0] * 100);
                      graphics.setColor(Color.GREEN);
                      graphics.drawLine(oldX, (int) lastAcceleration[1] * 100, newX, (int) acceleration[1] * 100);
                      graphics.setColor(Color.BLUE);
                      graphics.drawLine(oldX, (int) lastAcceleration[2] * 100, newX, (int) acceleration[2] * 100); */
 
-                    /*graphics.setColor(Color.YELLOW);
+                    /*
+                     graphics.setColor(Color.YELLOW);
                      graphics.drawLine(time, (int) physics.getLastVelocity(), t, (int) physics.getVelocity());
 
                      graphics.setColor(Color.WHITE);
-                     graphics.drawLine(time, (int) physics.getLastX(), t, (int) height);*/
+                     graphics.drawLine(time, (int) physics.getLastX(), t, (int) height);
 
-                    //System.out.printf("Velocity: %f - height: %f - acceleration: %f - deltaT: %f - deltaV: %f - deltaX: %f%n", velocity, height, acc);
+                     System.out.printf("Velocity: %f - height: %f - acceleration: %f - deltaT: %f - deltaV: %f - deltaX: %f%n", velocity, height, acc);*/
                 }
             };
             graphFrame.add(graph);
