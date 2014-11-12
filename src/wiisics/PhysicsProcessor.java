@@ -29,7 +29,7 @@ public class PhysicsProcessor {
     public long lastCalibTime = 0;
     public double zeroAcc = 0;
     public long lastAccChangeTime = 0;
-    public double lastAcc = 0;
+    public double lastAcc = 0
 
     public void update(double xInput, double yInput, double zInput) {
         long thisTime = System.currentTimeMillis();
