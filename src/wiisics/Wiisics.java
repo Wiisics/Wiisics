@@ -1,15 +1,10 @@
 package wiisics;
 
 import com.intel.bluetooth.BlueCoveConfigProperties;
-import java.util.ArrayList;
 import java.awt.*;
 import javax.swing.*;
 import wiiremotej.*;
 import wiiremotej.event.*;
-import javax.sound.sampled.*;
-import java.io.*;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 /**
  * Implements WiiRemoteListener and acts as a general test class. Note that you
@@ -35,24 +30,8 @@ public class Wiisics extends WiiRemoteAdapter {
     private static JPanel graph;
     private static int[][] pixels;
     
-    // These are all normalization variables by Cem
-    private static int t = 0;
-    private static int x = 0;
-    private static int y = 0;
-    private static int z = 0;
-    private static int lastX = 0;
-    private static int lastY = 0;
-    private static int lastZ = 0;
-    public static double lastHeight = 0;
-    public static double height = 0;
-    public static double lastVelocity = 0;
-    public static double velocity = 0;
-    public static long lastTime = 0;
-    public static long beginTime = 0;
-    public static long lastCalibTime = 0;
-    public static double zeroAcc = 0;
-    public static long lastAccChangeTime = 0;
-    public static double lastAcc = 0;
+    private static PhysicsProcessor physics;
+
 
     public static void main(String args[]) {
         //basic console logging options...
@@ -60,76 +39,42 @@ public class Wiisics extends WiiRemoteAdapter {
         //WiiRemoteJ.setConsoleLoggingOff();
 
         try {
-            mouseTestFrame = new JFrame();
-            mouseTestFrame.setTitle("Mouse test");
-            final int LS = 50; //line spacing
-            mouseTestFrame.setSize(4 * LS, 7 * LS);
-            mouseTestFrame.setResizable(false);
-
-            mouseTestPanel = new JPanel() {
-                public void paintComponent(Graphics graphics) {
-                    graphics.clearRect(0, 0, 4 * LS, 7 * LS);
-                    graphics.setColor(Color.YELLOW);
-                    if (status == 0) {
-                        graphics.fillRect(status * LS, (accelerometerStatus + 1) * LS, LS, LS);
-                    } else if (status == 3) {
-                        graphics.fillRect(status * LS, (analogStickStatus + 1) * LS, LS, LS);
-                    } else {
-                        graphics.fillRect(status * LS, LS, LS, LS);
-                    }
-
-                    graphics.setColor(Color.BLACK);
-                    graphics.drawString("WM", (int) (LS * 0.5), (int) (LS * 1.5));
-                    graphics.drawString("WT", (int) (LS * 0.5), (int) (LS * 2.5));
-                    graphics.drawString("NM", (int) (LS * 0.5), (int) (LS * 3.5));
-                    graphics.drawString("NT", (int) (LS * 0.5), (int) (LS * 4.5));
-                    graphics.drawString("**", (int) (LS * 1.5), (int) (LS * 1.5));
-                    graphics.drawString("**", (int) (LS * 2.5), (int) (LS * 1.5));
-                    graphics.drawString("NA", (int) (LS * 3.5), (int) (LS * 1.5));
-                    graphics.drawString("NR", (int) (LS * 3.5), (int) (LS * 2.5));
-                    graphics.drawString("LA", (int) (LS * 3.5), (int) (LS * 3.5));
-                    graphics.drawString("LR", (int) (LS * 3.5), (int) (LS * 4.5));
-                    graphics.drawString("RA", (int) (LS * 3.5), (int) (LS * 5.5));
-                    graphics.drawString("RR", (int) (LS * 3.5), (int) (LS * 6.5));
-
-                    paintChildren(graphics);
-                }
-            };
-
-            mouseTestPanel.setLayout(new FlowLayout());
-            mouseTestPanel.add(new JLabel("A          I       IA         AS"));
-            mouseTestFrame.add(mouseTestPanel);
-
             graphFrame = new JFrame();
             graphFrame.setTitle("Accelerometer graph: Wii Remote");
             graphFrame.setSize(800, 600);
             graphFrame.setResizable(false);
 
-            t = 801;
+            physics = new PhysicsProcessor();
             pixels = new int[800][600];
             graph = new JPanel() {
                 public void paintComponent(Graphics graphics) {
-                    if (t >= 800 || accelerometerSource != lastSource) {
-                        t = 0;
+                    int time = physics.getTime();
+                    
+                    if (time >= 800 || accelerometerSource != lastSource) {
+                        physics.setTime(0);
                         lastSource = accelerometerSource;
                         graphics.clearRect(0, 0, 800, 600);
                         graphics.fillRect(0, 0, 800, 600);
                         graphics.setColor(Color.WHITE);
                         graphics.drawLine(0, 300, 800, 300);
                     }
-
+                    
+                    double[] acceleration = physics.getAcceleration();
+                    double[] lastAcceleration = physics.getLastAcceleration();
                     graphics.setColor(Color.RED);
-                    graphics.drawLine(t, lastX, t, x);
+                    graphics.drawLine(time, (int) lastAcceleration[0], time, (int) acceleration[0]);
                     graphics.setColor(Color.GREEN);
-                    graphics.drawLine(t, lastY, t, y);
+                    graphics.drawLine(time, (int) lastAcceleration[1], time, (int) acceleration[1]);
                     graphics.setColor(Color.BLUE);
-                    graphics.drawLine(t, lastZ, t, z);
+                    graphics.drawLine(time, (int) lastAcceleration[2], time, (int) acceleration[2]);
 
-                    graphics.setColor(Color.YELLOW);
-                    graphics.drawLine(t, (int) lastVelocity, t, (int) velocity);
+                    /*graphics.setColor(Color.YELLOW);
+                    graphics.drawLine(time, (int) physics.getLastVelocity(), t, (int) physics.getVelocity());
 
                     graphics.setColor(Color.WHITE);
-                    graphics.drawLine(t, (int) lastHeight, t, (int) height);
+                    graphics.drawLine(time, (int) physics.getLastX(), t, (int) height);*/
+                    
+                    //System.out.printf("Velocity: %f - height: %f - acceleration: %f - deltaT: %f - deltaV: %f - deltaX: %f%n", velocity, height, acc);
                 }
             };
             graphFrame.add(graph);
@@ -188,68 +133,8 @@ public class Wiisics extends WiiRemoteAdapter {
         //System.out.println("R: " + evt.getRoll());
         //System.out.println("P: " + evt.getPitch());
         if (accelerometerSource) {
-            long thisTime = System.currentTimeMillis();
-            double acc = round(evt.getZAcceleration(), 3);
-            if (beginTime > 0 && thisTime - beginTime < 5000) {
-                long deltaT = thisTime - lastCalibTime;
-                zeroAcc = zeroAcc + (acc * deltaT);
 
-                lastCalibTime = thisTime;
-
-                if (thisTime - beginTime > 5000) {
-                    zeroAcc = zeroAcc / (thisTime - beginTime);
-                    beginTime = -1;
-                }
-            }
-
-            lastX = x;
-            lastY = y;
-            lastZ = z;
-
-            x = (int) (evt.getXAcceleration() / 5 * 300) + 300;
-            y = (int) (evt.getYAcceleration() / 5 * 300) + 300;
-            z = (int) (evt.getZAcceleration() / 5 * 300) + 300;
-
-            t++;
-
-            if (lastTime == 0) {
-                lastTime = thisTime;
-            } else {
-                double deltaT = (thisTime - lastTime) / 1000.0;
-                acc = acc - zeroAcc;
-
-                if (acc - lastAcc > 0.001) {
-                    lastAccChangeTime = thisTime;
-                    lastAcc = acc;
-                }
-
-                if (thisTime - lastAccChangeTime > 2000) {
-                    zeroAcc = lastAcc;
-                    velocity = 0;
-                }
-
-                double deltaV = acc * deltaT;
-                double deltaX = (velocity * deltaT) + (0.5 * acc * Math.pow(deltaT, 2));
-
-                lastVelocity = velocity;
-                velocity = velocity + deltaV;
-
-                lastHeight = height;
-                height = height + deltaX;
-
-                lastTime = thisTime;
-
-                System.out.printf("Velocity: %f - height: %f - acceleration: %f - deltaT: %f - deltaV: %f - deltaX: %f%n", velocity, height, acc, deltaT, deltaV, deltaX);
-            }
-
-            graph.repaint();
         }
-
-        /*System.out.println("---Acceleration Data---");
-         System.out.println("X: " + evt.getXAcceleration());
-         System.out.println("Y: " + evt.getYAcceleration());
-         System.out.println("Z: " + evt.getZAcceleration());
-         */
     }
 
     public void extensionInputReceived(WRExtensionEvent evt) {
@@ -275,15 +160,5 @@ public class Wiisics extends WiiRemoteAdapter {
 
     public void extensionDisconnected(WiiRemoteExtension extension) {
         System.out.println("Extension disconnected. Why'd you unplug it, eh?");
-    }
-
-    public static double round(double value, int places) {
-        if (places < 0) {
-            throw new IllegalArgumentException();
-        }
-
-        BigDecimal bd = new BigDecimal(value);
-        bd = bd.setScale(places, RoundingMode.HALF_UP);
-        return bd.doubleValue();
     }
 }
