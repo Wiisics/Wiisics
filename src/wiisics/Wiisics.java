@@ -57,7 +57,7 @@ public class Wiisics extends WiiRemoteAdapter {
             graphFrame.setSize(800, 600);
             graphFrame.setResizable(false);
 
-            pixels = new int[800][600];
+            pixels = new int[200][200];
             graph = new JPanel() {
                 public void paintComponent(Graphics graphics) {
                     long time = physics.getTime();
@@ -78,8 +78,8 @@ public class Wiisics extends WiiRemoteAdapter {
                     double[] acceleration = physics.getVelocity();
                     double[] lastAcceleration = physics.getLastVelocity();
 
-                    int totalAcc = 300 - ((int) (Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2)) * 75));
-                    int lastTotalAcc = 300 - ((int) (Math.sqrt(Math.pow(lastAcceleration[0], 2) + Math.pow(lastAcceleration[1], 2) + Math.pow(lastAcceleration[2], 2)) * 75));
+                    int totalAcc = 100 - ((int) (Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2)) * 75));
+                    int lastTotalAcc = 100 - ((int) (Math.sqrt(Math.pow(lastAcceleration[0], 2) + Math.pow(lastAcceleration[1], 2) + Math.pow(lastAcceleration[2], 2)) * 75));
 
                     graphics.setColor(Color.RED);
                     graphics.drawLine(oldX, lastTotalAcc, newX, totalAcc);
