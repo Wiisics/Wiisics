@@ -12,13 +12,13 @@ Wiisics, Nintendo Wii kumandalarını İlkokul ve Lise Fizik derslerinin müfred
 * Repository clone'lanır veya build indirilir.
 * Sistemin çalışması için gerekli olan JSR082 Bluetooth Stack'i yüklenir. Mac ve Windows için Bluecove (http://bluecove.org/), Linux için Avetana Bluetooth'un (http://sourceforge.net/projects/avetanabt/) yüklenmesi yeterli olacaktır.
 * Bluetooth Stack'in çalışması için gerekli olan driverlar indirilir: Mac ve Linux'ta standart driverlar bu işi görürken Windows'ta WIDCOMM driver'ı (http://www.broadcom.com/support/bluetooth/update.php) yüklenmelidir.
-* Bütün yüklemeler tamamlandıktan sonra uygulama çalıştırılabilir, ancak an itibariyle Bluecove sadece x32 JVM'leri desteklediği için bu stack'in kullanılıyor olması durumunda Java VM'i -d32 argümanıyla çağırmalıdır (örn. 
+* Bütün yüklemeler tamamlandıktan sonra uygulama çalıştırılabilir, ancak an itibariyle Bluecove sadece x32 JVM'leri desteklediği için bu stack'in kullanılıyor olması durumunda Java VM'i -d32 argümanıyla çağırmalıdır. 
 ```
 #!Bash
 
+cd /wiisics/jar/dosyasinin/oldugu/klasor/
 java -d32 -jar Wiisics.jar
 ```
-)
 
 ### Kiminle iletişime geçilmeli? ###
 
