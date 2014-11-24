@@ -5,6 +5,9 @@ target
 build/
 dist/
 
+nbproject/
+nbbuild.xml
+
 # Created by https://www.gitignore.io
 
 ### Intellij ###
@@ -53,3 +56,4 @@ atlassian-ide-plugin.xml
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 
+/nbproject/private/

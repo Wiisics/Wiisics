@@ -26,16 +26,19 @@ public class Wiisics extends WiiRemoteAdapter {
     private static JFrame mouseTestFrame;
     private static JPanel mouseTestPanel;
     private WiiRemote remote;
-    private static JFrame graphFrame;
-    private static JPanel graph;
     private static int[][] pixels;
     private static PhysicsProcessor physics;
+    private static Display display;
 
     public static void main(String args[]) {
         //basic console logging options...
         WiiRemoteJ.setConsoleLoggingAll();
         //WiiRemoteJ.setConsoleLoggingOff();
 
+        display = new Display();
+        display.setVisible(true);
+        display.setSize(display.getPreferredSize());
+        
         try {
             //Find and connect to a Wii Remote
             System.setProperty(BlueCoveConfigProperties.PROPERTY_JSR_82_PSM_MINIMUM_OFF, "true"); //Fix for weird bug in BlueCove
@@ -52,60 +55,7 @@ public class Wiisics extends WiiRemoteAdapter {
             }
 
             physics = new PhysicsProcessor();
-            graphFrame = new JFrame();
-            graphFrame.setTitle("Accelerometer graph: Wii Remote");
-            graphFrame.setSize(800, 600);
-            graphFrame.setResizable(false);
 
-            pixels = new int[200][200];
-            graph = new JPanel() {
-                public void paintComponent(Graphics graphics) {
-                    long time = physics.getTime();
-                    long beginTime = physics.getBeginTime();
-                    long lastTime = physics.getLastTime();
-
-                    /*if (time >= 800 || accelerometerSource != lastSource) {
-                     lastSource = accelerometerSource;
-                     graphics.clearRect(0, 0, 800, 600);
-                     graphics.fillRect(0, 0, 800, 600);
-                     graphics.setColor(Color.WHITE);
-                     graphics.drawLine(0, 300, 800, 300);
-                     }*/
-
-                    int oldX = (int) (((lastTime - beginTime) / 1000.0) * 80);
-                    int newX = (int) (((time - beginTime) / 1000.0) * 80);
-
-                    double[] acceleration = physics.getVelocity();
-                    double[] lastAcceleration = physics.getLastVelocity();
-
-                    int totalAcc = 100 - ((int) (Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2)) * 75));
-                    int lastTotalAcc = 100 - ((int) (Math.sqrt(Math.pow(lastAcceleration[0], 2) + Math.pow(lastAcceleration[1], 2) + Math.pow(lastAcceleration[2], 2)) * 75));
-
-                    graphics.setColor(Color.RED);
-                    graphics.drawLine(oldX, lastTotalAcc, newX, totalAcc);
-
-                    System.out.printf("%d, %d\n", newX, totalAcc);
-
-                    /*
-                     graphics.setColor(Color.RED);
-                     graphics.drawLine(oldX, (int) lastAcceleration[0] * 100, newX, (int) acceleration[0] * 100);
-                     graphics.setColor(Color.GREEN);
-                     graphics.drawLine(oldX, (int) lastAcceleration[1] * 100, newX, (int) acceleration[1] * 100);
-                     graphics.setColor(Color.BLUE);
-                     graphics.drawLine(oldX, (int) lastAcceleration[2] * 100, newX, (int) acceleration[2] * 100); */
-
-                    /*
-                     graphics.setColor(Color.YELLOW);
-                     graphics.drawLine(time, (int) physics.getLastVelocity(), t, (int) physics.getVelocity());
-
-                     graphics.setColor(Color.WHITE);
-                     graphics.drawLine(time, (int) physics.getLastX(), t, (int) height);
-
-                     System.out.printf("Velocity: %f - height: %f - acceleration: %f - deltaT: %f - deltaV: %f - deltaX: %f%n", velocity, height, acc);*/
-                }
-            };
-            graphFrame.add(graph);
-            graphFrame.setVisible(true);
             remote.addWiiRemoteListener(new Wiisics(remote));
             remote.setAccelerometerEnabled(true);
             remote.setSpeakerEnabled(true);
@@ -114,12 +64,13 @@ public class Wiisics extends WiiRemoteAdapter {
 
             final WiiRemote remoteF = remote;
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
                 public void run() {
                     remoteF.disconnect();
                 }
             }));
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Could not connect to Wii Remote: Trying again.");
         }
     }
 
@@ -127,24 +78,26 @@ public class Wiisics extends WiiRemoteAdapter {
         this.remote = remote;
     }
 
+    @Override
     public void disconnected() {
         System.out.println("Remote disconnected... Please Wii again.");
         System.exit(0);
     }
 
+    @Override
     public void statusReported(WRStatusEvent evt) {
         System.out.println("Battery level: " + (double) evt.getBatteryLevel() / 2 + "%");
         System.out.println("Continuous: " + evt.isContinuousEnabled());
         System.out.println("Remote continuous: " + remote.isContinuousEnabled());
     }
 
+    @Override
     public void accelerationInputReceived(WRAccelerationEvent evt) {
-        //System.out.println("R: " + evt.getRoll());
-        //System.out.println("P: " + evt.getPitch());
         if (accelerometerSource) {
+            Debugger.println("Acceleration input received");
             physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), evt.getPitch(), evt.getRoll());
 
-            graph.repaint();
+            display.update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
         }
     }
 

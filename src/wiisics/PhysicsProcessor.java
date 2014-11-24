@@ -56,10 +56,12 @@ public class PhysicsProcessor {
         lastVelocity[2] = velocity[2];
         
         //if(!(velocity[0])== 0 && velocity[1])== 0 && velocity[2])== 0))
-        long deltaT = thisTime - lastTime;
+        
+        // Bu bölümü grafikleri delirtmesin diye commentledim -Cem
+        /*long deltaT = thisTime - lastTime;
         velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * deltaT + lastVelocity[0];
         velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * deltaT + lastVelocity[1];
-        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * deltaT + lastVelocity[2];
+        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * deltaT + lastVelocity[2];*/
         
 
         if (lastTime != 0) {
