@@ -134,7 +134,7 @@ public class Display extends JFrame {
         Container contentPane = getContentPane();
         
         int numPanels = contentPane.getComponentCount();
-        System.out.println((numPanels + 1) + ". panel: column " + (numPanels % 4) + " and row " + (numPanels / 4));
+        Debugger.println((numPanels + 1) + ". panel: column " + (numPanels % 4) + " and row " + (numPanels / 4));
         contentPane.add(panel,
                 new GridConstraints(numPanels % 3, numPanels / 3, 1, 1,
                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
