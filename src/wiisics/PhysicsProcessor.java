@@ -59,9 +59,19 @@ public class PhysicsProcessor {
         
         // Bu bölümü grafikleri delirtmesin diye commentledim -Cem
         /*long deltaT = thisTime - lastTime;
-        velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * deltaT + lastVelocity[0];
-        velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * deltaT + lastVelocity[1];
-        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * deltaT + lastVelocity[2];*/
+        velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * ((double)deltaT/1000) + lastVelocity[0];
+        velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * ((double)deltaT/1000) + lastVelocity[1];
+        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * ((double)deltaT/1000) + lastVelocity[2];*/
+        
+        /*
+        displacement[0] = (Math.pow(velocity[0],2)-Math.pow(lastvelocity[0],2))/(acceleration[0] + lastAcceleration[0]);
+        displacement[1] = (Math.pow(velocity[1],2)-Math.pow(lastvelocity[1],2))/(acceleration[1] + lastAcceleration[1]);
+        displacement[2] = (Math.pow(velocity[2],2)-Math.pow(lastvelocity[2],2))/(acceleration[2] + lastAcceleration[2]);
+        
+        double totalV = Math.sqrt(Math.pow(velocity[0], 2) + Math.pow(velocity[1], 2) + Math.pow(velocity[2], 2));
+        double totalDisp = Math.sqrt(Math.pow(displacement[0], 2) + Math.pow(displacement[1], 2) + Math.pow(displacement[2], 2));
+        */
+        
         
 
         if (lastTime != 0) {
