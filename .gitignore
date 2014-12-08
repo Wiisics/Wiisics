@@ -8,6 +8,9 @@ dist/
 nbproject/
 nbbuild.xml
 
+wiisics.properties
+wiisics.xml
+
 # Created by https://www.gitignore.io
 
 ### Intellij ###

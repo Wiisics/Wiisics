@@ -44,13 +44,20 @@ public class Wiisics extends WiiRemoteAdapter {
             System.setProperty(BlueCoveConfigProperties.PROPERTY_JSR_82_PSM_MINIMUM_OFF, "true"); //Fix for weird bug in BlueCove
             WiiRemote remote = null;
 
+            int errors = 0;
             while (remote == null) {
+                if (errors >= 3) {
+                    System.out.println("Could not connect to the device.");
+                    System.exit(0);
+                }
+
                 try {
                     remote = WiiRemoteJ.connectToRemote("0022AAD458BD"); //WiiRemoteJ.findRemote(); // Put the Bluetooth MAC here
                 } catch (Exception e) {
                     remote = null;
-                    //e.printStackTrace();
+                    e.printStackTrace();
                     System.out.println("Failed to connect remote. Trying again.");
+                    errors++;
                 }
             }
 
