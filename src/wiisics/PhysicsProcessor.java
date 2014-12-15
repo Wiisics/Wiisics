@@ -4,6 +4,8 @@
  */
 package wiisics;
 
+import wiiremotej.AccelerationConstants;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.io.*;
@@ -36,7 +38,7 @@ public class PhysicsProcessor {
         thisTime = System.currentTimeMillis(); 
     }
 
-    public void update(double xInput, double yInput, double zInput, double pitch, double roll) {
+    public void update(AccelerationConstants constants, double xInput, double yInput, double zInput, double pitch, double roll) {
         lastTime = thisTime;
         thisTime = System.currentTimeMillis();
 
@@ -47,9 +49,9 @@ public class PhysicsProcessor {
         lastAcceleration[1] = acceleration[1];
         lastAcceleration[2] = acceleration[2];
 
-        acceleration[0] = round(xInput, 2);
-        acceleration[1] = round(yInput, 2);
-        acceleration[2] = round(zInput - 1, 2);
+        acceleration[0] = round(-1 * (xInput - constants.xOne())/(constants.xOne()-constants.xZero()), 2);
+        acceleration[1] = round(-1 * (yInput - constants.yOne())/(constants.yOne()-constants.yZero()), 2);
+        acceleration[2] = round(-1 * (zInput - constants.zOne())/(constants.zOne()-constants.zZero()), 2);
         
         lastVelocity[0] = velocity[0];
         lastVelocity[1] = velocity[1];
@@ -80,7 +82,7 @@ public class PhysicsProcessor {
         
         double totalAcc = Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2));
         
-        //System.out.printf("%d;%.3f;%.3f;%.3f;%.3f\n", thisTime, acceleration[0], acceleration[1], acceleration[2], totalAcc);
+        System.out.printf("%d     %.3f;%.3f;%.3f     %.3f;%.3f  %.3f;%.3f  %.3f;%.3f\n", thisTime, acceleration[0], acceleration[1], acceleration[2], constants.xZero(), constants.xOne(), constants.yZero(), constants.yOne(), constants.zZero(), constants.zOne());
     }
     
     public double[] getAcceleration() {

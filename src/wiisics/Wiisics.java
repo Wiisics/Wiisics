@@ -46,7 +46,7 @@ public class Wiisics extends WiiRemoteAdapter {
 
             int errors = 0;
             while (remote == null) {
-                if (errors >= 3) {
+                if (errors >= 50) {
                     System.out.println("Could not connect to the device.");
                     System.exit(0);
                 }
@@ -55,8 +55,8 @@ public class Wiisics extends WiiRemoteAdapter {
                     remote = WiiRemoteJ.connectToRemote("0022AAD458BD"); //WiiRemoteJ.findRemote(); // Put the Bluetooth MAC here
                 } catch (Exception e) {
                     remote = null;
-                    e.printStackTrace();
-                    System.out.println("Failed to connect remote. Trying again.");
+                    //e.printStackTrace();
+                    System.out.println("Failed to connect remote, trying again: Attempt " + (errors + 1) + ".");
                     errors++;
                 }
             }
@@ -102,7 +102,8 @@ public class Wiisics extends WiiRemoteAdapter {
     public void accelerationInputReceived(WRAccelerationEvent evt) {
         if (accelerometerSource) {
             Debugger.println("Acceleration input received");
-            physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), evt.getPitch(), evt.getRoll());
+            AccelerationConstants consts = remote.getAccelerationConstants();
+            physics.update(consts, evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), evt.getPitch(), evt.getRoll());
 
             display.update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
         }
