@@ -51,9 +51,11 @@ public class Wiisics extends WiiRemoteAdapter {
                     System.exit(0);
                 }
 
+
                 try {
-                    remote = WiiRemoteJ.connectToRemote("0022AAD458BD"); //WiiRemoteJ.findRemote(); // Put the Bluetooth MAC here
-                } catch (Exception e) {
+                    remote = WiiRemoteJ.findRemote();
+                }
+                catch(Exception e) {
                     remote = null;
                     e.printStackTrace();
                     System.out.println("Failed to connect remote. Trying again.");
