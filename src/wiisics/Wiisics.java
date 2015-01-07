@@ -32,12 +32,11 @@ public class Wiisics extends WiiRemoteAdapter {
 
     public static void main(String args[]) {
         //basic console logging options...
-        WiiRemoteJ.setConsoleLoggingAll();
-        //WiiRemoteJ.setConsoleLoggingOff();
+        //WiiRemoteJ.setConsoleLoggingAll();
+        WiiRemoteJ.setConsoleLoggingOff();
 
         display = new Display();
         display.setVisible(true);
-        display.setSize(display.getPreferredSize());
         
         try {
             //Find and connect to a Wii Remote

@@ -110,6 +110,9 @@ public class Display extends JFrame {
         s3 = generatePanel("sMag");
         v3 = generatePanel("vMag");
         a3 = generatePanel("aMag");
+
+        pack();
+        setLocationRelativeTo(null);
     }
 
     private GraphPanel generatePanel(String name) {
@@ -120,15 +123,17 @@ public class Display extends JFrame {
         panel.setLayout(null);
 
         Dimension preferredSize = new Dimension();
-        for (int i = 0; i < panel.getComponentCount(); i++) {
-            Rectangle bounds = panel.getComponent(i).getBounds();
-            preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
-            preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
-        }
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        double width = screenSize.getWidth();
+        double height = screenSize.getHeight();
+
+        preferredSize.width = (int) Math.min(width / 5, height / 4);
+        preferredSize.height = preferredSize.width;
+
         Insets insets = panel.getInsets();
         preferredSize.width += insets.right;
         preferredSize.height += insets.bottom;
-        panel.setMinimumSize(preferredSize);
         panel.setPreferredSize(preferredSize);
 
         Container contentPane = getContentPane();
