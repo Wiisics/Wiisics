@@ -10,6 +10,8 @@ package wiisics;
  */
 import com.intellij.uiDesigner.core.*;
 import java.awt.*;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.Random;
 import javax.swing.*;
 
@@ -113,6 +115,7 @@ public class Display extends JFrame {
 
         pack();
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     private GraphPanel generatePanel(String name) {

@@ -50,13 +50,11 @@ public class PhysicsProcessor {
         thisTime = System.currentTimeMillis(); 
     }
 
-    public void update(AccelerationConstants constants, double xInput, double yInput, double zInput, double pitch, double roll) {
+    public void update(double xInput, double yInput, double zInput, double pitch, double roll) {
         lastTime = thisTime;
         thisTime = System.currentTimeMillis();
         duration = thisTime-beginTime;
 
-        
-<<<<<<< HEAD
         lastAcceleration[0] = acceleration[0];
         lastAcceleration[1] = acceleration[1];
         lastAcceleration[2] = acceleration[2];
@@ -68,14 +66,12 @@ public class PhysicsProcessor {
         /*acceleration[0] = round(-1 * (xInput - constants.xOne())/(constants.xOne()-constants.xZero()), 2);
         acceleration[1] = round(-1 * (yInput - constants.yOne())/(constants.yOne()-constants.yZero()), 2);
         acceleration[2] = round(-1 * (zInput - constants.zOne())/(constants.zOne()-constants.zZero()), 2);*/
-=======
         if(duration > 500 && duration < 1500){
         	sum0 += round(xInput, 2);
            	sum1 += round(yInput, 2);
            	sum2 += round(zInput, 2);
            	i++;
         }
->>>>>>> 6c23117cc28e86f9e3066b5189ab75315c8d9c3c
         
         if(duration > 1500 && j){
         	j=false;
@@ -88,7 +84,7 @@ public class PhysicsProcessor {
         		
         	} else {
         		System.out.println("Calibration failed.");
-        		//Burasý doðru mu bilmiyorum
+        		//Burasï¿½ doï¿½ru mu bilmiyorum
         		System.exit(0);
         	}
         }
@@ -112,8 +108,7 @@ public class PhysicsProcessor {
              lastDisplacement[2] = displacement[2];
         }
        
-        
-<<<<<<< HEAD
+
         // Bu bÃ¶lÃ¼mÃ¼ grafikleri delirtmesin diye commentledim -Cem
         long deltaT = thisTime - lastTime;
         velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * ((double)deltaT/1000) + lastVelocity[0];
@@ -127,15 +122,6 @@ public class PhysicsProcessor {
         
         double totalV = Math.sqrt(Math.pow(velocity[0], 2) + Math.pow(velocity[1], 2) + Math.pow(velocity[2], 2));
         double totalDisp = Math.sqrt(Math.pow(displacement[0], 2) + Math.pow(displacement[1], 2) + Math.pow(displacement[2], 2));
-
-=======
-        //if(!(velocity[0])== 0 && velocity[1])== 0 && velocity[2])== 0))
-        
-        
-       
->>>>>>> 6c23117cc28e86f9e3066b5189ab75315c8d9c3c
-        
-        
 
         if (duration > 2000) {
             // Insert velocity, displacement calculation here
@@ -158,7 +144,7 @@ public class PhysicsProcessor {
         
         double totalAcc = Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2));
         
-        System.out.printf("%d     %.3f;%.3f     %.3f;%.3f;%.3f     %.3f;%.3f  %.3f;%.3f  %.3f;%.3f\n", thisTime, pitch, roll, acceleration[0], acceleration[1], acceleration[2], constants.xZero(), constants.xOne(), constants.yZero(), constants.yOne(), constants.zZero(), constants.zOne());
+        System.out.printf("%d     %.3f;%.3f     %.3f;%.3f;%.3f\n", thisTime, pitch, roll, acceleration[0], acceleration[1], acceleration[2]);
     }
     
     public double[] getAcceleration() {
