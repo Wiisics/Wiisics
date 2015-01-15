@@ -18,82 +18,70 @@ import javax.swing.JPanel;
  */
 public class GraphPanel extends JPanel {
     public static final int GRAPH_TIMEFRAME = 5;
-    private LinkedList<GraphDot> graphItems;
-    String name;
+    private WiisicsHandler handler;
+    private String name;
+    private int number;
     
-    public GraphPanel(String name) {
+    public GraphPanel(String name, int number, WiisicsHandler handler) {
         super();
         this.name = name;
-        this.graphItems = new LinkedList<GraphDot>();
-    }
-    
-    public void addGraphItem (long time, double value) {
-        Debugger.println("New graph item command received.");
-        GraphDot dot = new GraphDot(time, value);
-        graphItems.add(dot);
-        removePastItems();
-        this.repaint();
-    }
-    
-    public void removePastItems () {
-        ListIterator<GraphDot> it = graphItems.listIterator(graphItems.size());
-        
-        long currentDeltaTime = 0;
-        long lastTimeStamp = -1;
-        
-        while (it.hasPrevious()) {
-            GraphDot item = it.previous();
-            long thisTime = item.getTime();
-            if (lastTimeStamp != -1) {
-                if (currentDeltaTime > (GRAPH_TIMEFRAME * 1500)) { // Multiplying with 1500 instead of 1000 here as a safety margin
-                    it.remove();
-                } else {
-                    currentDeltaTime += lastTimeStamp - thisTime;
-                }
-            }
-            
-            lastTimeStamp = thisTime;
-        }
+        this.number = number;
+        this.handler = handler;
     }
     
     @Override
     public void paintComponent(Graphics graphics) {
+        handler.getDisplay().setBoolean(number, false);
         super.paintComponent(graphics);
-
         double width = this.getWidth();
         double height = this.getHeight();
-        
+        paintGraphPanel(graphics, width, height);
+        handler.getDisplay().setBoolean(number, true);
+    }
+
+    public void paintGraphPanel(Graphics graphics, double width, double height) {
         // Calculate the width of one millisecond if the entire graph will encompass 10 seconds
         double secondWidth = width / GRAPH_TIMEFRAME;
-        
+
         // Make a clone of the linkedlist for use here
-        LinkedList<GraphDot> list = (LinkedList<GraphDot>) graphItems.clone();
-        
+        GraphList<GraphDot> list = handler.getDisplay().getGraphList();
+
         //Now scan the entire graph to find the lowest and highest Y values
-        ListIterator<GraphDot> it = list.listIterator();
-        double maxValue = 0.1;
-        double minValue = -0.1;
-        while (it.hasNext()) {
-            GraphDot nextItem = it.next();
-            double value = nextItem.getValue();
-            if (value > maxValue)
-                maxValue = value;
-            if (value < minValue)
-                minValue = value;
-        }
-        
-        it = null;
-        
+        double[][] scaleSet = list.getLimits();
+        double minValue = scaleSet[number/4][0];
+        double maxValue = scaleSet[number/4][1];
+
         //Now find the multiplier for the Y values as well as the topmost Y value
         int padding = (int) (height / 20);
-        double multiplier = (height - (2 * padding)) / (maxValue - minValue);
+        double drawableArea = (height - (2 * padding));
+        double multiplier = drawableArea / (maxValue - minValue);
         double topValue = maxValue + (padding / multiplier);
-        
+
+        // Draw Y axis
+        graphics.setColor(Color.BLACK);
+        graphics.drawLine(0, 0, 0, (int) height);
+
         //Let's draw the X axis
         int yCoord = (int) (padding + (topValue * multiplier));
         graphics.setColor(Color.BLACK);
         graphics.drawLine(0, yCoord, (int) width, yCoord);
-        
+
+        // Draw Y axis labels
+        int topPixelIncrement = ((int) (yCoord / 3.0));
+        double topRealIncrement = topPixelIncrement / multiplier;
+
+        int bottomPixelIncrement = ((int) ((height - yCoord) / 3.0));
+        double bottomRealIncrement = bottomPixelIncrement / multiplier;
+
+        // Draw the top
+        FontMetrics metrics = graphics.getFontMetrics();
+        int descent = metrics.getDescent();
+        graphics.drawString(String.format("% .2f", -1 * 2 * topRealIncrement), 0, yCoord + (-1 * 2 * topPixelIncrement) + descent);
+        graphics.drawString(String.format("% .2f", -1 * 1 * topRealIncrement), 0, yCoord + (-1 * 1 * topPixelIncrement) + descent);
+        graphics.drawString(String.format("% .2f", -1 * 0 * topRealIncrement), 0, yCoord + descent);
+        graphics.drawString(String.format("% .2f", -1 * -1 * bottomRealIncrement), 0, yCoord + (-1 * -1 * bottomPixelIncrement) + descent);
+        graphics.drawString(String.format("% .2f", -1 * -2 * bottomRealIncrement), 0, yCoord + (-1 * -2 * bottomPixelIncrement) + descent);
+
         //Now let's start drawing the graphs
         graphics.setColor(Color.RED);
         GraphDot future = null;
@@ -102,55 +90,42 @@ public class GraphPanel extends JPanel {
         ListIterator<GraphDot> it2 = list.listIterator(list.size());
         while (it2.hasPrevious()) {
             past = it2.previous();
-            if (future != null) {
+            if (past.isPause()) {
                 double startX = lastX;
-                double startY = (int) (padding + ((topValue - future.getValue()) * multiplier));
-                
-                double endX = lastX - ((int) (((future.getTime() - past.getTime()) * secondWidth) / 1000));
-                double endY = (int) (padding + ((topValue - past.getValue()) * multiplier));
-                
+                if (startX < 0)
+                    break;
+                double startY = 0;
+
+                double endX = startX;
+                double endY = height;
+
+                graphics.setColor(Color.BLUE);
                 graphics.drawLine((int) startX, (int) startY, (int) endX, (int) endY);
+                graphics.setColor(Color.RED);
                 //System.out.printf("Width %d and Height %d: Start Coords (%d, %d); End Coords (%d, %d)\n", width, height, startX, startY, endX, endY);
                 lastX = endX;
+                future = null;
+            } else {
+                if (future != null) {
+                    double startX = lastX;
+                    if (startX < 0)
+                        break;
+                    double startY = (int) (padding + ((topValue - future.getValue()[number / 4][number % 4]) * multiplier));
+
+                    double endX = lastX - ((int) (((future.getTime() - past.getTime()) * secondWidth) / 1000));
+                    double endY = (int) (padding + ((topValue - past.getValue()[number / 4][number % 4]) * multiplier));
+
+                    graphics.drawLine((int) startX, (int) startY, (int) endX, (int) endY);
+                    //System.out.printf("Width %d and Height %d: Start Coords (%d, %d); End Coords (%d, %d)\n", width, height, startX, startY, endX, endY);
+                    lastX = endX;
+                }
+                future = past;
+                past = null;
             }
-            future = past;
-            past = null;
         }
         it2 = null;
-        
-        graphics.setColor(Color.BLACK);
-        FontMetrics fm = graphics.getFontMetrics();
-        
-        long dt = 0;
-        try {
-            GraphDot first = list.get(0);
-            GraphDot last = list.get(list.size() - 1);
-            if (first != null && last != null)
-                dt = (last.getTime() - first.getTime()) / 1000;
-        } catch (Exception e) {}
-        
-        graphics.drawString(name + ": " + list.size() + " items and dt of " + dt + "s", 5, fm.getHeight() + 5);
 
-        /*if (time >= 800 || accelerometerSource != lastSource) {
-         lastSource = accelerometerSource;
-         graphics.clearRect(0, 0, 800, 600);
-         graphics.fillRect(0, 0, 800, 600);
-         graphics.setColor(Color.WHITE);
-         graphics.drawLine(0, 300, 800, 300);
-         }*/
-
-        /*int oldX = (int) (((lastTime - beginTime) / 1000.0) * (width / 100));
-        int newX = (int) (((time - beginTime) / 1000.0) * (width / 100));
-
-        double[] acceleration = physics.getVelocity();
-        double[] lastAcceleration = physics.getLastVelocity();
-
-        int totalAcc = (height / 2) - ((int) (Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2)) * 75));
-        int lastTotalAcc = (height / 2) - ((int) (Math.sqrt(Math.pow(lastAcceleration[0], 2) + Math.pow(lastAcceleration[1], 2) + Math.pow(lastAcceleration[2], 2)) * 75));
-        */
-        //graphics.setColor(Color.RED);
-        //graphics.drawLine(oldX, lastTotalAcc, newX, totalAcc);
-
-        //System.out.printf("%d, %d\n", newX, totalAcc);
+        graphics.setColor(Color.BLUE);
+        graphics.drawString(name, (int) (width - (metrics.stringWidth(name) + 5)), metrics.getHeight() + 5);
     }
 }

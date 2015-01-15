@@ -10,29 +10,112 @@ package wiisics;
  */
 import com.intellij.uiDesigner.core.*;
 import java.awt.*;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Random;
 import javax.swing.*;
 
 public class Display extends JFrame {
+
+    private WiisicsHandler handler;
 
     private JMenuBar menuBar1;
     private JMenu menu1;
     private JMenuItem menuItem1;
     private JMenu menu2;
     private JMenuItem menuItem2;
+    private Toolbar toolbar;
     private Random rand;
+
+    private JPanel contentsPanel;
     
-    private GraphPanel[] displacement;
-    private GraphPanel[] velocity;
-    private GraphPanel[] acceleration;
-    private GraphPanel s3;
-    private GraphPanel v3;
-    private GraphPanel a3;
+    private GraphPanel[] panels;
+    private GraphList<GraphDot> graphList;
+    private boolean[] readies;
+    private LinkedList<GraphDot> onHolds;
 
+    public void setBoolean(int number, boolean bool) {
+        readies[number] = bool;
 
-    public Display() {
+        if (allReady())
+            pushItems();
+    }
+
+    public boolean allReady() {
+        boolean all = true;
+        for (int i = 1; i < readies.length; i++) {
+            if (!readies[i]) {
+                all = false;
+                break;
+            }
+        }
+
+        return all;
+    }
+
+    public void pushItems() {
+        if (onHolds.size() > 0) {
+            while (onHolds.size() > 0) {
+                graphList.add(onHolds.remove());
+            }
+            rescale();
+            for (int i = 0; i < panels.length; i++) {
+                panels[i].repaint();
+            }
+        }
+    }
+
+    public GraphList<GraphDot> getGraphList() {
+        return graphList;
+    }
+
+    public void rescale() {
+        ListIterator<GraphDot> it = graphList.listIterator();
+
+        double[][] values = graphList.getLimits();
+        for (int i = 0; i < values.length; i++) {
+            values[i][0] = 0.1;
+            values[i][1] = -0.1;
+        }
+        while (it.hasNext()) {
+            GraphDot nextItem = it.next();
+            if (!nextItem.isPause()) {
+                double[][] data = nextItem.getValue();
+                for (int i = 0; i < data.length; i++) {
+                    double[] dataSet = data[i];
+                    for (int j = 0; j < dataSet.length; j++) {
+                        double value = dataSet[j];
+                        if (value > values[i][1])
+                            values[i][1] = value;
+                        if (value < values[i][0])
+                            values[i][0] = value;
+                    }
+                }
+            }
+        }
+        graphList.setLimits(values);
+    }
+
+    public void reset() {
+        graphList.clear();
+        onHolds.clear();
+        rescale();
+        for (int i = 0; i < panels.length; i++) {
+            panels[i].repaint();
+        }
+    }
+
+    public Display(WiisicsHandler handler) {
+        this.handler = handler;
+        this.graphList = new GraphList<GraphDot>();
+        rescale();
+        this.onHolds = new LinkedList<GraphDot>();
+        this.readies = new boolean[12];
+        for (int i = 0; i < readies.length; i++) {
+            readies[i] = true;
+        }
         rand = new Random();
         initComponents();
     }
@@ -40,25 +123,45 @@ public class Display extends JFrame {
     public void update(long time, double[] s, double[] v, double[] a) {
         Debugger.println("Update command received.");
         double sSum = 0;
+        double[] newS = new double[4];
         for (int i = 0; i < s.length; i++) {
-            displacement[i].addGraphItem(time, s[i]);
+            newS[i] = s[i];
             sSum += Math.pow(s[i], 2);
         }
-        s3.addGraphItem(time, Math.sqrt(sSum));
-        
+        newS[3] = Math.sqrt(sSum);
+
         double vSum = 0;
+        double[] newV = new double[4];
         for (int i = 0; i < v.length; i++) {
-            velocity[i].addGraphItem(time, v[i]);
+            newV[i] = v[i];
             vSum += Math.pow(v[i], 2);
         }
-        v3.addGraphItem(time, Math.sqrt(vSum));
-        
+        newV[3] = Math.sqrt(vSum);
+
         double aSum = 0;
+        double[] newA = new double[4];
         for (int i = 0; i < a.length; i++) {
-            acceleration[i].addGraphItem(time, a[i]);
+            newA[i] = a[i];
             aSum += Math.pow(a[i], 2);
         }
-        a3.addGraphItem(time, Math.sqrt(aSum));
+        newA[3] = Math.sqrt(aSum);
+
+        double[][] values = new double[3][];
+        values[0] = newS;
+        values[1] = newV;
+        values[2] = newA;
+
+        GraphDot dot = new GraphDot(time, values);
+        if (allReady()) {
+            graphList.add(dot);
+            rescale();
+            for (int i = 0; i < panels.length; i++) {
+                panels[i].repaint();
+            }
+        } else {
+            onHolds.add(dot);
+        }
+        //System.out.println("New entry added: size now at " + graphList.size());
     }
 
     private void initComponents() {
@@ -71,7 +174,13 @@ public class Display extends JFrame {
         //======== this ========
         setTitle("Wiisics v0.1");
         Container contentPane = getContentPane();
-        contentPane.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), 0, 0, true, true));
+        setLayout(new BorderLayout());
+        toolbar = new Toolbar(handler);
+        getContentPane().add(toolbar, BorderLayout.PAGE_START);
+
+        contentsPanel = new JPanel();
+        getContentPane().add(contentsPanel, BorderLayout.PAGE_END);
+        contentsPanel.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), 0, 0, true, true));
 
         //======== menuBar1 ========
         {
@@ -98,28 +207,33 @@ public class Display extends JFrame {
         }
         setJMenuBar(menuBar1);
 
-        displacement = new GraphPanel[3];
-        velocity = new GraphPanel[3];
-        acceleration = new GraphPanel[3];
+        final Display display = this;
+        menuItem2.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Dialog_About dialog = new Dialog_About(display, true);
+            }
+        });
+
+        panels = new GraphPanel[12];
         
         String[] names = {"X", "Y", "Z"};
         for (int i = 0; i < 3; i++) {
-            displacement[i] = generatePanel("s" + names[i]);
-            velocity[i] = generatePanel("v" + names[i]);
-            acceleration[i] = generatePanel("a" + names[i]);
+            panels[i] = generatePanel("s" + names[i], i);
+            panels[4+i] = generatePanel("v" + names[i], 4+i);
+            panels[8+i] = generatePanel("a" + names[i], 8+i);
         }
         
-        s3 = generatePanel("sMag");
-        v3 = generatePanel("vMag");
-        a3 = generatePanel("aMag");
+        panels[3] = generatePanel("sMag", 3);
+        panels[7] = generatePanel("vMag", 7);
+        panels[11] = generatePanel("aMag", 11);
 
         pack();
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    private GraphPanel generatePanel(String name) {
-        GraphPanel panel = new GraphPanel(name);
+    private GraphPanel generatePanel(String name, int number) {
+        GraphPanel panel = new GraphPanel(name, number, handler);
         
         panel.setBackground(Color.getHSBColor(rand.nextFloat(), (rand.nextInt(2000) + 1000) / 10000f, 0.9f));
 
@@ -139,7 +253,7 @@ public class Display extends JFrame {
         preferredSize.height += insets.bottom;
         panel.setPreferredSize(preferredSize);
 
-        Container contentPane = getContentPane();
+        Container contentPane = contentsPanel; //getContentPane();
         
         int numPanels = contentPane.getComponentCount();
         Debugger.println((numPanels + 1) + ". panel: column " + (numPanels % 4) + " and row " + (numPanels / 4));
@@ -151,5 +265,17 @@ public class Display extends JFrame {
                 null, null, null));
 
         return panel;
+    }
+
+    public void refresh() {
+        for (int i = 0; i < panels.length; i++) {
+            panels[i].repaint();
+        }
+
+        toolbar.refresh();
+    }
+
+    public GraphPanel[] getPanels() {
+        return panels;
     }
 }

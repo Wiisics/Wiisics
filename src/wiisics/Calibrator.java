@@ -19,14 +19,22 @@ public class Calibrator {
     private int rollCount;
     private double pitchTotal;
     private int pitchCount;
+    private double[] accelerationTotals;
+    private int accelerationCount;
 
-    public Calibrator (double pitch, double roll, double[] acceleration) {
+    private WiisicsHandler handler;
+
+    public Calibrator (WiisicsHandler handler, double pitch, double roll, double[] acceleration) {
         lastRoll = roll;
         lastPitch = pitch;
         lastAcceleration = acceleration;
         lastAMag = calculateAccelerationMagnitude(acceleration);
 
         aborted = !isDataValid(pitch, roll, acceleration);
+        if (aborted) {
+            System.out.println("Directly aborted");
+            returnData();
+        }
 
         rollTotal = roll;
         rollCount = 1;
@@ -34,39 +42,58 @@ public class Calibrator {
         pitchTotal = pitch;
         pitchCount = 1;
 
+        accelerationTotals = acceleration;
+        accelerationCount = 1;
+
         startTime = System.currentTimeMillis();
+
+        this.handler = handler;
     }
 
     public void addData(double pitch, double roll, double[] acceleration) {
         if (!aborted) {
             if (isDataValid(pitch, roll, acceleration)) {
                 rollTotal += roll;
-                rollCount = 1;
+                rollCount++;
 
                 pitchTotal += pitch;
                 pitchCount++;
+
+                accelerationTotals[0] += acceleration[0];
+                accelerationTotals[1] += acceleration[1];
+                accelerationTotals[2] += acceleration[2];
+                accelerationCount++;
+
 
                 lastRoll = roll;
                 lastPitch = pitch;
                 lastAcceleration = acceleration;
             } else {
-                aborted = false;
+                aborted = true;
+                System.out.println("Abort!");
             }
         }
+
+        returnData();
     }
 
-    public double[] getData() throws Exception {
+    private void returnData() {
         if (aborted) {
-            throw new Exception("Data beyond calibration thresholds.");
+            System.out.println("End calibration fail");
+            handler.getWiisics().calibrationResults(new double[0]);
         } else {
             if (System.currentTimeMillis() - startTime >= calibrationSeconds * 1000) {
-                double[] results = new double[2];
+                System.out.println("End calibration pass");
+                double[] results = new double[5];
                 results[0] = pitchTotal / pitchCount;
                 results[1] = rollTotal / rollCount;
-                return results;
+                results[2] = accelerationTotals[0] / accelerationCount;
+                results[3] = accelerationTotals[1] / accelerationCount;
+                results[4] = accelerationTotals[2] / accelerationCount;
+
+                handler.getWiisics().calibrationResults(results);
             }
         }
-        return new double[0];
     }
 
     public boolean isDataValid(double pitch, double roll, double[] acceleration) {
@@ -82,8 +109,8 @@ public class Calibrator {
         double aMag = calculateAccelerationMagnitude(acceleration);
 
         // Check acceleration magnitude unreality (too far from 1g?)
-        if (Math.abs(aMag - 1) > cancellationThreshold)
-            return false;
+        /*if (Math.abs(aMag - 1) > cancellationThreshold)
+            return false;*/
 
         // Check acceleration magnitude deviation
         if (Math.abs(aMag - lastAMag) > cancellationThreshold)

@@ -4,11 +4,16 @@
  */
 package wiisics;
 
+import Jama.Matrix;
 import wiiremotej.AccelerationConstants;
 
+import javax.vecmath.Matrix3d;
+import javax.vecmath.Vector3d;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.io.*;
+import java.util.Vector;
 
 /**
  *
@@ -33,142 +38,102 @@ public class PhysicsProcessor {
     
     private PrintWriter writer;
     
-    private long duration = 0;
-    
-    private double sum0;
-    private double sum1;
-    private double sum2;
-    private double stdAcc0;
-    private double stdAcc1;
-    private double stdAcc2;
-    private int i;
-    private boolean j;
-
-    
     public PhysicsProcessor() {
-        beginTime = System.currentTimeMillis();
-        thisTime = System.currentTimeMillis(); 
+        beginTime = -1;
+        thisTime = -1;
     }
 
-    public void update(double xInput, double yInput, double zInput, double pitch, double roll) {
-        lastTime = thisTime;
-        thisTime = System.currentTimeMillis();
-        duration = thisTime-beginTime;
+    public void update(double xInput, double yInput, double zInput, double[] calibratedData) {
+        if (beginTime != -1) {
+            lastTime = thisTime;
+            thisTime = System.currentTimeMillis();
 
-        lastAcceleration[0] = acceleration[0];
-        lastAcceleration[1] = acceleration[1];
-        lastAcceleration[2] = acceleration[2];
+            pitch = calibratedData[0];
+            roll = calibratedData[1];
 
-        acceleration[0] = round(xInput, 2);
-        acceleration[1] = round(yInput, 2);
-        acceleration[2] = round(zInput, 2);
+            lastAcceleration[0] = acceleration[0];
+            lastAcceleration[1] = acceleration[1];
+            lastAcceleration[2] = acceleration[2];
 
-        /*acceleration[0] = round(-1 * (xInput - constants.xOne())/(constants.xOne()-constants.xZero()), 2);
-        acceleration[1] = round(-1 * (yInput - constants.yOne())/(constants.yOne()-constants.yZero()), 2);
-        acceleration[2] = round(-1 * (zInput - constants.zOne())/(constants.zOne()-constants.zZero()), 2);*/
-        if(duration > 500 && duration < 1500){
-        	sum0 += round(xInput, 2);
-           	sum1 += round(yInput, 2);
-           	sum2 += round(zInput, 2);
-           	i++;
+            lastVelocity[0] = velocity[0];
+            lastVelocity[1] = velocity[1];
+            lastVelocity[2] = velocity[2];
+
+            lastDisplacement[0] = displacement[0];
+            lastDisplacement[1] = displacement[1];
+            lastDisplacement[2] = displacement[2];
+
+            acceleration = new double[]{xInput, yInput, zInput};
+            acceleration = fixAcceleration(acceleration, calibratedData);
+            acceleration[0] = round(acceleration[0], 2);
+            acceleration[1] = round(acceleration[1], 2);
+            acceleration[2] = round(acceleration[2], 2);
+
+            long deltaT = thisTime - lastTime;
+            velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * ((double) deltaT / 1000) + lastVelocity[0];
+            velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * ((double) deltaT / 1000) + lastVelocity[1];
+            velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * ((double) deltaT / 1000) + lastVelocity[2];
+
+            displacement[0] = (Math.pow(velocity[0], 2) - Math.pow(lastVelocity[0], 2)) / (acceleration[0] + lastAcceleration[0]);
+            displacement[1] = (Math.pow(velocity[1], 2) - Math.pow(lastVelocity[1], 2)) / (acceleration[1] + lastAcceleration[1]);
+            displacement[2] = (Math.pow(velocity[2], 2) - Math.pow(lastVelocity[2], 2)) / (acceleration[2] + lastAcceleration[2]);
+
+            //System.out.printf("%d     %.3f;%.3f     %.3f;%.3f;%.3f\n", thisTime, pitch, roll, acceleration[0], acceleration[1], acceleration[2]);
+        } else {
+            beginTime = System.currentTimeMillis();
+            thisTime = System.currentTimeMillis();
+
+            acceleration[0] = round(xInput, 2);
+            acceleration[1] = round(yInput, 2);
+            acceleration[2] = round(zInput, 2) + 0.995;
         }
-        
-        if(duration > 1500 && j){
-        	j=false;
-        	stdAcc0 = sum0/i;
-        	stdAcc1 = sum1/i;
-        	stdAcc2 = sum2/i;
-        	double accCheck = Math.sqrt(stdAcc0*stdAcc0 + stdAcc1*stdAcc1 + stdAcc2*stdAcc2);
-        	if (accCheck < 1.010 && accCheck > 0.970) {
-        		System.out.println("Calibration successful.");
-        		
-        	} else {
-        		System.out.println("Calibration failed.");
-        		//Buras� do�ru mu bilmiyorum
-        		System.exit(0);
-        	}
-        }
-       
-        
-        if(duration >= 2000){
-        	 lastAcceleration[0] = acceleration[0];
-             lastAcceleration[1] = acceleration[1];
-             lastAcceleration[2] = acceleration[2];
+    }
 
-             acceleration[0] = round(xInput, 2) - stdAcc0;
-             acceleration[1] = round(yInput, 2) - stdAcc1;
-             acceleration[2] = round(zInput, 2) - stdAcc2;
-             
-             lastVelocity[0] = velocity[0];
-             lastVelocity[1] = velocity[1];
-             lastVelocity[2] = velocity[2];
-             
-             lastDisplacement[0] = displacement[0];
-             lastDisplacement[1] = displacement[1];
-             lastDisplacement[2] = displacement[2];
-        }
-       
+    public double[] fixAcceleration(double[] accValues, double[] calibrationValues) {
+        // The Z axis of our rotated frame is opposite gravity
+        Vector3d zAxis = new Vector3d(-calibrationValues[2], -calibrationValues[3], -calibrationValues[4]);
+        zAxis.normalize();
 
-        // Bu bölümü grafikleri delirtmesin diye commentledim -Cem
-        long deltaT = thisTime - lastTime;
-        velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * ((double)deltaT/1000) + lastVelocity[0];
-        velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * ((double)deltaT/1000) + lastVelocity[1];
-        velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * ((double)deltaT/1000) + lastVelocity[2];
-        
+        // The Y axis of our rotated frame is an arbitrary vector perpendicular to gravity
+        // Note that this convention will have problems as zAxis.x approaches +/-1 since the magnitude of
+        // [0, zAxis.z, -zAxis.y] will approach 0
 
-        displacement[0] = (Math.pow(velocity[0],2)-Math.pow(lastVelocity[0],2))/(acceleration[0] + lastAcceleration[0]);
-        displacement[1] = (Math.pow(velocity[1],2)-Math.pow(lastVelocity[1],2))/(acceleration[1] + lastAcceleration[1]);
-        displacement[2] = (Math.pow(velocity[2],2)-Math.pow(lastVelocity[2],2))/(acceleration[2] + lastAcceleration[2]);
-        
-        double totalV = Math.sqrt(Math.pow(velocity[0], 2) + Math.pow(velocity[1], 2) + Math.pow(velocity[2], 2));
-        double totalDisp = Math.sqrt(Math.pow(displacement[0], 2) + Math.pow(displacement[1], 2) + Math.pow(displacement[2], 2));
+        double z = zAxis.getZ();
+        double y = -1 * zAxis.getY();
+        Vector3d yAxis = new Vector3d(0, z, y);
+        yAxis.normalize();
 
-        if (duration > 2000) {
-            // Insert velocity, displacement calculation here
-        	// Bu bölümü grafikleri delirtmesin diye commentledim -Cem
-        	/*long deltaT = thisTime - lastTime;
-            velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * ((double)deltaT/1000) + lastVelocity[0];
-            velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * ((double)deltaT/1000) + lastVelocity[1];
-            velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * ((double)deltaT/1000) + lastVelocity[2];*/
-            
-            /*
-            displacement[0] = (Math.pow(velocity[0],2)-Math.pow(lastvelocity[0],2))/(acceleration[0] + lastAcceleration[0]);
-            displacement[1] = (Math.pow(velocity[1],2)-Math.pow(lastvelocity[1],2))/(acceleration[1] + lastAcceleration[1]);
-            displacement[2] = (Math.pow(velocity[2],2)-Math.pow(lastvelocity[2],2))/(acceleration[2] + lastAcceleration[2]);
-            
-            double totalV = Math.sqrt(Math.pow(velocity[0], 2) + Math.pow(velocity[1], 2) + Math.pow(velocity[2], 2));
-            double totalDisp = Math.sqrt(Math.pow(displacement[0], 2) + Math.pow(displacement[1], 2) + Math.pow(displacement[2], 2));
-            */
-        }
+        // The X axis is just the cross product of Y and Z
+        Vector3d xAxis = new Vector3d();
+        xAxis.cross(yAxis, zAxis);
 
-        
-        double totalAcc = Math.sqrt(Math.pow(acceleration[0], 2) + Math.pow(acceleration[1], 2) + Math.pow(acceleration[2], 2));
-        
-        System.out.printf("%d     %.3f;%.3f     %.3f;%.3f;%.3f\n", thisTime, pitch, roll, acceleration[0], acceleration[1], acceleration[2]);
+        double[][] values = {{xAxis.getX(), yAxis.getX(), zAxis.getX()}, {xAxis.getY(), yAxis.getY(), zAxis.getY()}, {xAxis.getZ(), yAxis.getZ(), zAxis.getZ()}};
+        Matrix matrix = new Matrix(values);
+
+        Matrix inverted = matrix.inverse();
+
+        // Subtract the zero acceleration
+        accValues[0] -= calibrationValues[0];
+        accValues[1] -= calibrationValues[1];
+        accValues[2] -= calibrationValues[2];
+
+        double[][] accelerationVector = {accValues};
+        Matrix accelerationVMatrix = new Matrix(accelerationVector);
+
+        Matrix endVector = accelerationVMatrix.times(inverted);
+        return endVector.getArrayCopy()[0];
     }
     
     public double[] getAcceleration() {
         return acceleration;
     }
     
-    public double[] getLastAcceleration() {
-        return lastAcceleration;
-    }
-    
     public double[] getVelocity() {
         return velocity;
     }
     
-    public double[] getLastVelocity() {
-        return lastVelocity;
-    }
-    
     public double[] getDisplacement() {
         return displacement;
-    }
-    
-    public double[] getLastDisplacement() {
-        return lastDisplacement;
     }
      
     public long getTime() {
@@ -178,10 +143,6 @@ public class PhysicsProcessor {
     public long getBeginTime() {
         return beginTime;
     }
-    
-    public long getLastTime() {
-        return lastTime;
-    }
 
     public static double round(double value, int places) {
         if (places < 0) {
@@ -189,7 +150,7 @@ public class PhysicsProcessor {
         }
 
         BigDecimal bd = new BigDecimal(value);
-        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        bd = bd.round(new MathContext(places));
         return bd.doubleValue();
     }
 }

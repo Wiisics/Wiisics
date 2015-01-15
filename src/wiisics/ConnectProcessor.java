@@ -7,26 +7,30 @@ import wiiremotej.WiiRemoteJ;
  * Created by funstein on 08/01/15.
  */
 public class ConnectProcessor implements Runnable {
-    private Dialog_Connecting parent;
+    private WiisicsHandler handler;
     private String macAddress;
+    public Dialog_Connecting dialog;
 
-    public ConnectProcessor(Dialog_Connecting dialog, String MAC) {
-        this.parent = dialog;
+    public ConnectProcessor(WiisicsHandler handler, String MAC, Dialog_Connecting dialog) {
+        this.handler = handler;
         this.macAddress = MAC;
+        this.dialog = dialog;
     }
 
     public void run() {
         int errors = 0;
         WiiRemote wr = null;
-        while (wr == null && !Thread.currentThread().isInterrupted()) {
+        while (wr == null) {
             if (errors >= 50) {
                 System.out.println("Could not connect to the device.");
-                parent.findFailed();
+                dialog.dispose();
+                handler.findFailed();
                 return;
             }
             try {
                 wr = WiiRemoteJ.connectToRemote(macAddress); //WiiRemoteJ.findRemote(); // Put the Bluetooth MAC here
-                parent.foundRemote(wr);
+                dialog.dispose();
+                handler.connectResults(wr);
                 return;
             } catch (Exception e) {
                 wr = null;
@@ -37,7 +41,8 @@ public class ConnectProcessor implements Runnable {
         }
 
         System.out.println("Ending thread");
-        parent.findFailed();
+        dialog.dispose();
+        handler.findFailed();
         return;
     }
 }

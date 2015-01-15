@@ -1,30 +1,23 @@
 package wiisics;
 
-import wiiremotej.WiiRemote;
-import wiiremotej.WiiRemoteJ;
-
 import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 
 public class Dialog_Connecting extends JDialog {
 
-    private Thread finderThread;
+    private WiisicsHandler handler;
 
     /**
      * Creates new form Initial
      */
-    public Dialog_Connecting(java.awt.Frame parent, boolean modal, String MAC) {
+    public Dialog_Connecting(java.awt.Frame parent, boolean modal, WiisicsHandler handler) {
         super(parent, modal);
-        macAddress = MAC;
+        this.handler = handler;
         initComponents();
         setLocationRelativeTo(parent);
         setVisible(true);
-        finderThread = new Thread(new ConnectProcessor(this, macAddress));
-        finderThread.run();
     }
 
     private void initComponents() {
-
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         cancel = new javax.swing.JButton();
@@ -37,7 +30,7 @@ public class Dialog_Connecting extends JDialog {
 
         jLabel2.setForeground(new java.awt.Color(0, 102, 0));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Connecting to Wiimote at " + macAddress + "...");
+        jLabel2.setText("Connecting to Wiimote.");
 
         cancel.setText("Cancel");
         cancel.addActionListener(new java.awt.event.ActionListener() {
@@ -76,37 +69,12 @@ public class Dialog_Connecting extends JDialog {
     }
 
     private void cancelActionPerformed(java.awt.event.ActionEvent evt) {
-        remote = null;
-        finderThread.interrupt();
-        WiiRemoteJ.stopFind();
-        //finderThread.stop();
-        findFailed();
-    }
-
-    public WiiRemote getRemote() {
-        return remote;
-    }
-
-    public void foundRemote(WiiRemote wr) {
-        remote = wr;
-        dispose();
-        WiisicsHandler.connectResults(this);
-    }
-
-    public void findFailed() {
-        try {
-            finderThread.join();
-        } catch (Exception e) {}
-        dispose();
-        WiisicsHandler.connectResults(this);
+        handler.findFailed();
     }
 
     // Variables declaration - do not modify
     private javax.swing.JButton cancel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-
-    private WiiRemote remote;
-    private String macAddress;
     // End of variables declaration
 }

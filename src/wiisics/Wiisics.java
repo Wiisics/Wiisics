@@ -8,28 +8,59 @@ import wiiremotej.event.*;
 
 
 public class Wiisics extends WiiRemoteAdapter {
-    private WiiRemote remote;
-    private static PhysicsProcessor physics;
-    private static Display display;
+    private WiisicsHandler handler;
+    public boolean running;
+    private double[] calibratedData;
+    private boolean calibrating;
+    private Calibrator calibrator;
 
-    public Wiisics(WiiRemote remote, Display display) {
-        this.remote = remote;
-        physics = new PhysicsProcessor();
-        this.display = display;
-    }
-
-    @Override
-    public void disconnected() {
-        System.out.println("Remote disconnected... Goodbye!");
-        System.exit(0);
+    public Wiisics(WiisicsHandler handler) {
+        this.handler = handler;
+        running = false;
+        calibratedData = new double[0];
+        calibrating = false;
     }
 
     @Override
     public void accelerationInputReceived(WRAccelerationEvent evt) {
-        Debugger.println("Acceleration input received");
-        physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), evt.getPitch(), evt.getRoll());
+        if (calibrating) {
+            double[] data = new double[]{evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration()};
+            if (calibrator == null) {
+                calibrator = new Calibrator(handler, evt.getPitch(), evt.getRoll(), data);
+            } else {
+                System.out.println("Adding calibration data");
+                calibrator.addData(evt.getPitch(), evt.getRoll(), data);
+            }
+        }
+        else if (running) {
+            if (calibratedData.length == 5) {
+                PhysicsProcessor physics = handler.getPhysicsProcessor();
+                Debugger.println("Acceleration input received");
 
-        display.update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
+                physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), calibratedData);
+                handler.getDisplay().update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
+            } else {
+                System.out.println("Missing calibration");
+            }
+        }
     }
 
+    public void calibrate() {
+        if (!calibrating) {
+            calibrating = true;
+            System.out.println("Start calibration");
+        }
+    }
+
+    public void calibrationResults(double[] results) {
+        calibrator = null;
+        calibrating = false;
+
+        calibratedData = results;
+        handler.getDisplay().refresh();
+    }
+
+    public double[] getCalibratedData() {
+        return calibratedData;
+    }
 }

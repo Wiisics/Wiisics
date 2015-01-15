@@ -1,6 +1,8 @@
 package wiisics;
 
 import javax.swing.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
 
 /**
  *
@@ -91,9 +93,11 @@ public class Dialog_Initial extends javax.swing.JDialog {
     }
 
     private void connectMouseReleased(java.awt.event.MouseEvent evt) {
-        macAddress = macAddr.getText();
-        setVisible(false);
-        dispose();
+        if (evt.getID() == MouseEvent.MOUSE_RELEASED) {
+            macAddress = macAddr.getText();
+            setVisible(false);
+            dispose();
+        }
     }
 
     public String getMACAddress() {
