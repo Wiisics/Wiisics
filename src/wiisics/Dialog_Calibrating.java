@@ -1,15 +1,19 @@
 package wiisics;
 
-class Dialog_ConnectFail extends javax.swing.JDialog {
+import javax.swing.*;
+
+/**
+ *
+ * @author funstein
+ */
+public class Dialog_Calibrating extends javax.swing.JDialog {
 
     /**
      * Creates new form Initial
      */
-    public Dialog_ConnectFail(java.awt.Frame parent, boolean modal) {
+    public Dialog_Calibrating(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        setLocationRelativeTo(parent);
-        setVisible(true);
     }
 
     /**
@@ -21,26 +25,18 @@ class Dialog_ConnectFail extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        retry = new javax.swing.JButton();
+        JLabel jLabel1 = new javax.swing.JLabel();
+        JLabel jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Wiisics Initialization");
+        jLabel1.setText("Wiisics Wiimote Calibration");
 
-        jLabel2.setForeground(new java.awt.Color(100, 0, 0));
+        jLabel2.setForeground(new java.awt.Color(0, 102, 0));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Could not connect to Wiimote at given MAC address.");
-
-        retry.setText("Retry");
-        retry.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                retryActionPerformed(evt);
-            }
-        });
+        jLabel2.setText("Calibrating Wiimote... Wait 5 seconds.");
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -48,9 +44,7 @@ class Dialog_ConnectFail extends javax.swing.JDialog {
                 layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                         .add(layout.createSequentialGroup()
                                 .add(6, 6, 6)
-                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                        .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .add(retry, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .add(layout.createSequentialGroup()
                                 .addContainerGap()
@@ -64,20 +58,10 @@ class Dialog_ConnectFail extends javax.swing.JDialog {
                                 .add(jLabel1)
                                 .add(6, 6, 6)
                                 .add(jLabel2)
-                                .add(6, 6, 6)
-                                .add(retry, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 48, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap(18, Short.MAX_VALUE))
         );
 
         pack();
-    }// </editor-fold>
-
-    private void retryActionPerformed(java.awt.event.ActionEvent evt) {
-        dispose();
+        setLocationRelativeTo(getParent());
     }
-
-    // Variables declaration - do not modify
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JButton retry;
-    // End of variables declaration
 }

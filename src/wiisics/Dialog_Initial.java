@@ -1,14 +1,11 @@
 package wiisics;
 
-import javax.swing.*;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
 
 /**
- *
  * @author funstein
  */
-public class Dialog_Initial extends javax.swing.JDialog {
+class Dialog_Initial extends javax.swing.JDialog {
 
     /**
      * Creates new form Initial

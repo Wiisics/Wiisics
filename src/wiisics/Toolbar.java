@@ -2,22 +2,22 @@ package wiisics;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.InputStream;
 
-public class Toolbar extends JToolBar {
+class Toolbar extends JToolBar {
     private final WiisicsHandler handler;
     private JLabel lblPitch;
     private JLabel lblRoll;
 
-    public Toolbar (WiisicsHandler handler) {
+    public Toolbar(WiisicsHandler handler) {
         super();
         this.handler = handler;
         initComponents();
     }
 
-    public void initComponents() {
+    private void initComponents() {
         try {
             InputStream playStream = getClass().getResourceAsStream("start.png");
             JButton btnPlay = new JButton("Start", new ImageIcon(ImageIO.read(playStream)));
@@ -55,7 +55,8 @@ public class Toolbar extends JToolBar {
             JButton btnRecalibrate = new JButton("Recalibrate", new ImageIcon(ImageIO.read(recalibrateStream)));
             btnRecalibrate.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    handler.getWiisics().calibrate();
+                    if (handler.getWiisics() != null)
+                        handler.getWiisics().calibrate();
                 }
             });
 
@@ -116,11 +117,10 @@ public class Toolbar extends JToolBar {
             add(lblPitch);
             addSeparator();
             add(lblRoll);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         setFloatable(false);
-        System.out.println("made toolbar");
-        //setBorderPainted(false);
     }
 
     public void refresh() {
@@ -133,7 +133,7 @@ public class Toolbar extends JToolBar {
             pitchString += "N/A";
         lblPitch.setText(pitchString);
 
-        String rollString = "Pitch: ";
+        String rollString = "Roll: ";
         if (calibratedData.length == 5)
             rollString += String.format("%d degrees", (int) (Math.toDegrees(calibratedData[1]) + 0.5));
         else

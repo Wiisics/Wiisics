@@ -5,32 +5,33 @@
 package wiisics;
 
 /**
- *
  * @author funstein
  */
-public class GraphDot {
-    private long time;
+class GraphDot {
+    private final long time;
 
-    private boolean pause;
+    private final boolean pause;
     private double[][] value;
-    
-    public GraphDot (long time, double[][] value) {
+
+    public GraphDot(long time, double[][] value) {
         this.time = time;
         this.value = value;
         this.pause = false;
         Debugger.println("Graph dot created.");
     }
 
-    public GraphDot (long time) {
+    public GraphDot(long time) {
         this.time = time;
         this.pause = true;
     }
-    
+
     public long getTime() {
         return this.time;
     }
 
-    public double[][] getValue() { return this.value; }
+    public double[][] getValue() {
+        return this.value;
+    }
 
     public boolean isPause() {
         return pause;

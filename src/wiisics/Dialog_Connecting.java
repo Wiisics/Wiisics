@@ -4,7 +4,7 @@ import javax.swing.*;
 
 public class Dialog_Connecting extends JDialog {
 
-    private WiisicsHandler handler;
+    private final WiisicsHandler handler;
 
     /**
      * Creates new form Initial

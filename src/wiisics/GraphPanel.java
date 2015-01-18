@@ -4,39 +4,32 @@
  */
 package wiisics;
 
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.util.LinkedList;
-import java.util.List;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ListIterator;
-import javax.swing.JPanel;
 
 /**
- *
  * @author funstein
  */
 public class GraphPanel extends JPanel {
     public static final int GRAPH_TIMEFRAME = 5;
-    private WiisicsHandler handler;
-    private String name;
-    private int number;
-    
+    private final WiisicsHandler handler;
+    private final String name;
+    private final int number;
+
     public GraphPanel(String name, int number, WiisicsHandler handler) {
         super();
         this.name = name;
         this.number = number;
         this.handler = handler;
     }
-    
+
     @Override
     public void paintComponent(Graphics graphics) {
-        handler.getDisplay().setBoolean(number, false);
         super.paintComponent(graphics);
         double width = this.getWidth();
         double height = this.getHeight();
         paintGraphPanel(graphics, width, height);
-        handler.getDisplay().setBoolean(number, true);
     }
 
     public void paintGraphPanel(Graphics graphics, double width, double height) {
@@ -48,8 +41,8 @@ public class GraphPanel extends JPanel {
 
         //Now scan the entire graph to find the lowest and highest Y values
         double[][] scaleSet = list.getLimits();
-        double minValue = scaleSet[number/4][0];
-        double maxValue = scaleSet[number/4][1];
+        double minValue = scaleSet[number / 4][0];
+        double maxValue = scaleSet[number / 4][1];
 
         //Now find the multiplier for the Y values as well as the topmost Y value
         int padding = (int) (height / 20);
@@ -96,14 +89,10 @@ public class GraphPanel extends JPanel {
                     break;
                 double startY = 0;
 
-                double endX = startX;
-                double endY = height;
-
                 graphics.setColor(Color.BLUE);
-                graphics.drawLine((int) startX, (int) startY, (int) endX, (int) endY);
+                graphics.drawLine((int) startX, (int) startY, (int) startX, (int) height);
                 graphics.setColor(Color.RED);
-                //System.out.printf("Width %d and Height %d: Start Coords (%d, %d); End Coords (%d, %d)\n", width, height, startX, startY, endX, endY);
-                lastX = endX;
+                lastX = startX;
                 future = null;
             } else {
                 if (future != null) {
@@ -116,7 +105,6 @@ public class GraphPanel extends JPanel {
                     double endY = (int) (padding + ((topValue - past.getValue()[number / 4][number % 4]) * multiplier));
 
                     graphics.drawLine((int) startX, (int) startY, (int) endX, (int) endY);
-                    //System.out.printf("Width %d and Height %d: Start Coords (%d, %d); End Coords (%d, %d)\n", width, height, startX, startY, endX, endY);
                     lastX = endX;
                 }
                 future = past;

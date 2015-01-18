@@ -1,15 +1,18 @@
 package wiisics;
 
-class Dialog_ConnectFail extends javax.swing.JDialog {
+import javax.swing.*;
+
+/**
+ * Created by funstein on 18/01/15.
+ */
+public class Dialog_CalibratePass extends javax.swing.JDialog {
 
     /**
      * Creates new form Initial
      */
-    public Dialog_ConnectFail(java.awt.Frame parent, boolean modal) {
+    public Dialog_CalibratePass(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        setLocationRelativeTo(parent);
-        setVisible(true);
     }
 
     /**
@@ -20,25 +23,24 @@ class Dialog_ConnectFail extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents() {
-
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        retry = new javax.swing.JButton();
+        JLabel jLabel1 = new javax.swing.JLabel();
+        JLabel jLabel2 = new javax.swing.JLabel();
+        JButton jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Wiisics Initialization");
+        jLabel1.setText("Wiisics Wiimote Calibration");
 
-        jLabel2.setForeground(new java.awt.Color(100, 0, 0));
+        jLabel2.setForeground(new java.awt.Color(0, 102, 0));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Could not connect to Wiimote at given MAC address.");
+        jLabel2.setText("Wiimote calibrated successfully - click close to start using Wiisics.");
 
-        retry.setText("Retry");
-        retry.addActionListener(new java.awt.event.ActionListener() {
+        jButton1.setText("Close");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                retryActionPerformed(evt);
+                jButton1ActionPerformed(evt);
             }
         });
 
@@ -50,7 +52,7 @@ class Dialog_ConnectFail extends javax.swing.JDialog {
                                 .add(6, 6, 6)
                                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                                         .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .add(retry, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                        .add(jButton1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .add(layout.createSequentialGroup()
                                 .addContainerGap()
@@ -65,19 +67,14 @@ class Dialog_ConnectFail extends javax.swing.JDialog {
                                 .add(6, 6, 6)
                                 .add(jLabel2)
                                 .add(6, 6, 6)
-                                .add(retry, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 48, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .add(jButton1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 48, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
+        setLocationRelativeTo(getParent());
     }// </editor-fold>
 
-    private void retryActionPerformed(java.awt.event.ActionEvent evt) {
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         dispose();
     }
-
-    // Variables declaration - do not modify
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JButton retry;
-    // End of variables declaration
 }

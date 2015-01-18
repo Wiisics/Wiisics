@@ -1,13 +1,19 @@
 package wiisics;
 
-/**
- * Created by funstein on 08/01/15.
+/*
+ * Wiisics
+ * Calibrator.java
+ * Uskudar American Academy, 2015
+ *
+ * Cem Gokmen <cem@cemgokmen.com>
+ * Hakan Alpan <hakan.alpan@hotmail.com>
  */
-public class Calibrator {
+
+class Calibrator {
     private static final double cancellationThreshold = 0.05;
     private static final int calibrationSeconds = 5;
 
-    private long startTime;
+    private final long startTime;
     private boolean aborted;
 
     private double lastAcceleration[];
@@ -22,9 +28,9 @@ public class Calibrator {
     private double[] accelerationTotals;
     private int accelerationCount;
 
-    private WiisicsHandler handler;
+    private final WiisicsHandler handler;
 
-    public Calibrator (WiisicsHandler handler, double pitch, double roll, double[] acceleration) {
+    public Calibrator(WiisicsHandler handler, double pitch, double roll, double[] acceleration) {
         lastRoll = roll;
         lastPitch = pitch;
         lastAcceleration = acceleration;
@@ -32,7 +38,6 @@ public class Calibrator {
 
         aborted = !isDataValid(pitch, roll, acceleration);
         if (aborted) {
-            System.out.println("Directly aborted");
             returnData();
         }
 
@@ -68,9 +73,9 @@ public class Calibrator {
                 lastRoll = roll;
                 lastPitch = pitch;
                 lastAcceleration = acceleration;
+                lastAMag = calculateAccelerationMagnitude(acceleration);
             } else {
                 aborted = true;
-                System.out.println("Abort!");
             }
         }
 
@@ -79,11 +84,9 @@ public class Calibrator {
 
     private void returnData() {
         if (aborted) {
-            System.out.println("End calibration fail");
             handler.getWiisics().calibrationResults(new double[0]);
         } else {
             if (System.currentTimeMillis() - startTime >= calibrationSeconds * 1000) {
-                System.out.println("End calibration pass");
                 double[] results = new double[5];
                 results[0] = pitchTotal / pitchCount;
                 results[1] = rollTotal / rollCount;
@@ -96,7 +99,7 @@ public class Calibrator {
         }
     }
 
-    public boolean isDataValid(double pitch, double roll, double[] acceleration) {
+    private boolean isDataValid(double pitch, double roll, double[] acceleration) {
         // Check roll deviation
         if (Math.abs(roll - lastRoll) > cancellationThreshold)
             return false;
@@ -126,13 +129,13 @@ public class Calibrator {
         return true;
     }
 
-    public static double calculateAccelerationMagnitude (double[] acceleration) {
+    private static double calculateAccelerationMagnitude(double[] acceleration) {
         double squareSum = 0;
         for (int i = 0; i < acceleration.length; i++) {
             squareSum += Math.pow(acceleration[i], 2);
         }
-        double aMag = Math.sqrt(squareSum);
+        double aMagn = Math.sqrt(squareSum);
 
-        return aMag;
+        return aMagn;
     }
 }

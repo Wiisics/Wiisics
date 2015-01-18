@@ -8,18 +8,21 @@ package wiisics;
  *
  * @author funstein
  */
-import com.intellij.uiDesigner.core.*;
+
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Random;
-import javax.swing.*;
 
 public class Display extends JFrame {
 
-    private WiisicsHandler handler;
+    private final WiisicsHandler handler;
 
     private JMenuBar menuBar1;
     private JMenu menu1;
@@ -27,57 +30,24 @@ public class Display extends JFrame {
     private JMenu menu2;
     private JMenuItem menuItem2;
     private Toolbar toolbar;
-    private Random rand;
+    private final Random rand;
 
     private JPanel contentsPanel;
-    
+
     private GraphPanel[] panels;
     private GraphList<GraphDot> graphList;
-    private boolean[] readies;
-    private LinkedList<GraphDot> onHolds;
-
-    public void setBoolean(int number, boolean bool) {
-        readies[number] = bool;
-
-        if (allReady())
-            pushItems();
-    }
-
-    public boolean allReady() {
-        boolean all = true;
-        for (int i = 1; i < readies.length; i++) {
-            if (!readies[i]) {
-                all = false;
-                break;
-            }
-        }
-
-        return all;
-    }
-
-    public void pushItems() {
-        if (onHolds.size() > 0) {
-            while (onHolds.size() > 0) {
-                graphList.add(onHolds.remove());
-            }
-            rescale();
-            for (int i = 0; i < panels.length; i++) {
-                panels[i].repaint();
-            }
-        }
-    }
 
     public GraphList<GraphDot> getGraphList() {
         return graphList;
     }
 
-    public void rescale() {
+    private void rescale() {
         ListIterator<GraphDot> it = graphList.listIterator();
 
         double[][] values = graphList.getLimits();
         for (int i = 0; i < values.length; i++) {
-            values[i][0] = 0.1;
-            values[i][1] = -0.1;
+            values[i][0] = -1;
+            values[i][1] = 1;
         }
         while (it.hasNext()) {
             GraphDot nextItem = it.next();
@@ -100,7 +70,6 @@ public class Display extends JFrame {
 
     public void reset() {
         graphList.clear();
-        onHolds.clear();
         rescale();
         for (int i = 0; i < panels.length; i++) {
             panels[i].repaint();
@@ -111,11 +80,6 @@ public class Display extends JFrame {
         this.handler = handler;
         this.graphList = new GraphList<GraphDot>();
         rescale();
-        this.onHolds = new LinkedList<GraphDot>();
-        this.readies = new boolean[12];
-        for (int i = 0; i < readies.length; i++) {
-            readies[i] = true;
-        }
         rand = new Random();
         initComponents();
     }
@@ -152,16 +116,11 @@ public class Display extends JFrame {
         values[2] = newA;
 
         GraphDot dot = new GraphDot(time, values);
-        if (allReady()) {
-            graphList.add(dot);
-            rescale();
-            for (int i = 0; i < panels.length; i++) {
-                panels[i].repaint();
-            }
-        } else {
-            onHolds.add(dot);
+        graphList.add(dot);
+        rescale();
+        for (int i = 0; i < panels.length; i++) {
+            panels[i].repaint();
         }
-        //System.out.println("New entry added: size now at " + graphList.size());
     }
 
     private void initComponents() {
@@ -215,14 +174,14 @@ public class Display extends JFrame {
         });
 
         panels = new GraphPanel[12];
-        
+
         String[] names = {"X", "Y", "Z"};
         for (int i = 0; i < 3; i++) {
             panels[i] = generatePanel("s" + names[i], i);
-            panels[4+i] = generatePanel("v" + names[i], 4+i);
-            panels[8+i] = generatePanel("a" + names[i], 8+i);
+            panels[4 + i] = generatePanel("v" + names[i], 4 + i);
+            panels[8 + i] = generatePanel("a" + names[i], 8 + i);
         }
-        
+
         panels[3] = generatePanel("sMag", 3);
         panels[7] = generatePanel("vMag", 7);
         panels[11] = generatePanel("aMag", 11);
@@ -234,7 +193,7 @@ public class Display extends JFrame {
 
     private GraphPanel generatePanel(String name, int number) {
         GraphPanel panel = new GraphPanel(name, number, handler);
-        
+
         panel.setBackground(Color.getHSBColor(rand.nextFloat(), (rand.nextInt(2000) + 1000) / 10000f, 0.9f));
 
         panel.setLayout(null);
@@ -254,15 +213,16 @@ public class Display extends JFrame {
         panel.setPreferredSize(preferredSize);
 
         Container contentPane = contentsPanel; //getContentPane();
-        
+
         int numPanels = contentPane.getComponentCount();
         Debugger.println((numPanels + 1) + ". panel: column " + (numPanels % 4) + " and row " + (numPanels / 4));
         contentPane.add(panel,
                 new GridConstraints(numPanels % 3, numPanels / 3, 1, 1,
-                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                null, null, null));
+                        GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                        null, null, null)
+        );
 
         return panel;
     }

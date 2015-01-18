@@ -2,7 +2,7 @@ package wiisics;
 
 import javax.imageio.ImageIO;
 
-public class Dialog_About extends javax.swing.JDialog {
+class Dialog_About extends javax.swing.JDialog {
 
     /**
      * Creates new form Initial
@@ -45,7 +45,8 @@ public class Dialog_About extends javax.swing.JDialog {
 
         try {
             jLabel3.setIcon(new javax.swing.ImageIcon(ImageIO.read(getClass().getResourceAsStream("Wiisics.png")))); // NOI18N
-        } catch(Exception e) {}
+        } catch (Exception e) {
+        }
 
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel4.setText("Cem Gökmen <cem@cemgokmen.com>");

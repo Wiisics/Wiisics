@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Created by funstein on 08/01/15.
  */
-public class WiisicsHandler {
+class WiisicsHandler {
     public Wiisics getWiisics() {
         return wiisics;
     }
@@ -51,10 +51,9 @@ public class WiisicsHandler {
     }
 
     private Wiisics wiisics;
-    private Display display;
+    private final Display display;
     private PhysicsProcessor physics;
     private WiiRemote wiiremote;
-    public Thread finderThread;
     private final WiisicsHandler handler;
 
     public WiisicsHandler() throws Exception {
@@ -69,21 +68,23 @@ public class WiisicsHandler {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Wiisics");
             Application.getApplication().setDockIconImage(ImageIO.read(Class.forName("wiisics.Wiisics").getResourceAsStream("Wiisics.png")));
-            Application.getApplication().setAboutHandler(new AboutHandler() {
-                @Override
-                public void handleAbout(AppEvent.AboutEvent aboutEvent) {
-                    Dialog_About dialog = new Dialog_About(handler.getDisplay(), true);
-                }
-            });
         }
 
         this.display = new Display(this);
         display.setVisible(true);
+
+        if (IS_MAC) {
+            Application.getApplication().setAboutHandler(new AboutHandler() {
+                @Override
+                public void handleAbout(AppEvent.AboutEvent aboutEvent) {
+                    Dialog_About dialog = new Dialog_About(display, true);
+                }
+            });
+        }
     }
 
     public void startConnect() {
         if (wiiremote == null) {
-            System.out.println("test1");
             String address = "";
 
             while (address.length() != 12) {
@@ -99,34 +100,24 @@ public class WiisicsHandler {
             WiiRemote wr = null;
             while (wr == null) {
                 if (errors >= 50) {
-                    System.out.println("Could not connect to the device.");
                     connecting.dispose();
                     findFailed();
                     return;
                 }
                 try {
-                    wr = WiiRemoteJ.connectToRemote(address); //WiiRemoteJ.findRemote(); // Put the Bluetooth MAC here
+                    wr = WiiRemoteJ.connectToRemote(address);
                     connecting.dispose();
                     connectResults(wr);
                     return;
                 } catch (Exception e) {
                     wr = null;
-                    //e.printStackTrace();
-                    System.out.println("Failed to connect remote, trying again: Attempt " + (errors + 1) + ".");
                     errors++;
                 }
             }
-            /*if (finderThread == null)
-                finderThread = new Thread(new ConnectProcessor(this, address, connecting));
-            if (!finderThread.isAlive())
-                finderThread.run();*/
         }
     }
 
     public void findFailed() {
-        try {
-            finderThread.join();
-        } catch (Exception e) {}
         handler.connectResults(null);
     }
 
@@ -135,11 +126,7 @@ public class WiisicsHandler {
             Dialog_ConnectFail failed = new Dialog_ConnectFail(display, true);
             startConnect();
         } else {
-            /*try {
-                finderThread.join();
-            } catch (Exception ignore) {}
-            Debugger.println("Connected!");*/
-            System.out.println("test2");
+            Dialog_ConnectPass passed = new Dialog_ConnectPass(display, false);
             this.wiiremote = remote;
             this.physics = new PhysicsProcessor();
             this.wiisics = new Wiisics(this);
@@ -151,7 +138,8 @@ public class WiisicsHandler {
                 wiiremote.setSpeakerEnabled(true);
                 wiiremote.setIRSensorEnabled(false, WRIREvent.BASIC);
                 wiiremote.setLEDIlluminated(0, true);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
 
             final WiisicsHandler handler = this;
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -183,23 +171,29 @@ public class WiisicsHandler {
     }
 
     public void save() {
-        if (wiisics != null) {
+        if (wiisics != null && wiisics.running)
+            return;
+
             JFileChooser fc = new JFileChooser();
-            fc.addChoosableFileFilter(new CSVFilter());
-            fc.addChoosableFileFilter(new ImageFilter());
+            CSVFilter f1 = new CSVFilter();
+            ImageFilter f2 = new ImageFilter();
+            fc.addChoosableFileFilter(f1);
+            fc.addChoosableFileFilter(f2);
             fc.setAcceptAllFileFilterUsed(false);
+            fc.setFileFilter(f1);
             int returnVal = fc.showSaveDialog(display);
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
-                if (FilenameUtils.isExtension(file.getAbsolutePath(), "png")) {
+                if (fc.getFileFilter() == f2) {
+                    if (!FilenameUtils.isExtension(file.getAbsolutePath(), "png")) {
+                        file = new File(file.getAbsolutePath() + ".png");
+                    }
                     if (!wiisics.running) {
-                        System.out.println("Exporting image");
-
                         // Figure out the image height and width
                         int height = 400;
                         double millisecondWidth = 400.0 / (GraphPanel.GRAPH_TIMEFRAME * 1000);
-                        int width = (int) (Math.abs(display.getGraphList().getFirst().getTime() - display.getGraphList().getLast().getTime()) * millisecondWidth + 0.5);
+                        int width = (int) (Math.abs(display.getGraphList().get(0).getTime() - display.getGraphList().get(display.getGraphList().size() - 1).getTime()) * millisecondWidth + 0.5);
 
                         // Draw the individual panels
                         GraphPanel[] panels = display.getPanels();
@@ -208,13 +202,21 @@ public class WiisicsHandler {
                             GraphPanel component = panels[i];
                             BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
                             Graphics g = image.createGraphics();
+                            Color oldColor = g.getColor();
+                            Color superLightGray = new Color(200, 200, 200);
+                            if (i % 2 == 1) {
+                                g.setColor(superLightGray);
+                                g.drawRect(0, 0, width, height);
+                                g.fillRect(0, 0, width, height);
+                                g.setColor(oldColor);
+                            }
                             component.paintGraphPanel(g, width, height);
                             images[i] = image;
                         }
 
                         // Join them now
                         int bigHeight = height * panels.length;
-                        BufferedImage newImage = new BufferedImage(width,bigHeight, BufferedImage.TYPE_INT_ARGB);
+                        BufferedImage newImage = new BufferedImage(width, bigHeight, BufferedImage.TYPE_INT_ARGB);
                         Graphics2D g2 = newImage.createGraphics();
                         Color oldColor = g2.getColor();
                         //fill background
@@ -222,27 +224,22 @@ public class WiisicsHandler {
                         g2.fillRect(0, 0, width, bigHeight);
                         //draw image
                         g2.setColor(oldColor);
+
                         for (int i = 0; i < images.length; i++) {
                             BufferedImage img = images[i];
                             g2.drawImage(img, null, 0, i * height);
-                            g2.setColor(Color.GREEN);
-                            g2.drawLine(0, i*height + 1, width, i*height + 1);
-                            g2.setColor(oldColor);
                         }
                         g2.dispose();
 
                         try {
                             ImageIO.write(newImage, "png", file);
                         } catch (IOException ex) {
-                            System.out.println("Could not save image.");
                         }
                     }
 
                 } else {
-                    System.out.println("Exporting CSV");
-
                     if (!FilenameUtils.isExtension(file.getAbsolutePath(), "csv")) {
-                        file = new File(file.getAbsolutePath()+".csv");
+                        file = new File(file.getAbsolutePath() + ".csv");
                     }
 
                     FileWriter fileWriter = null;
@@ -266,21 +263,17 @@ public class WiisicsHandler {
                                 csvFilePrinter.printRecord(list);
                             }
                         }
-                        System.out.println("CSV file was created successfully !!!");
-
                     } catch (Exception e) {
-                        System.out.println("Error in CsvFileWriter !!!");
                     } finally {
                         try {
                             fileWriter.flush();
                             fileWriter.close();
                             csvFilePrinter.close();
                         } catch (IOException e) {
-                            System.out.println("Error while flushing/closing fileWriter/csvPrinter !!!");
                         }
                     }
                 }
             }
-        }
+
     }
 }

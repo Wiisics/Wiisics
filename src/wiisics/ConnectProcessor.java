@@ -3,13 +3,19 @@ package wiisics;
 import wiiremotej.WiiRemote;
 import wiiremotej.WiiRemoteJ;
 
-/**
- * Created by funstein on 08/01/15.
+/*
+ * Wiisics
+ * ConnectProcessor.java
+ * Uskudar American Academy, 2015
+ *
+ * Cem Gokmen <cem@cemgokmen.com>
+ * Hakan Alpan <hakan.alpan@hotmail.com>
  */
-public class ConnectProcessor implements Runnable {
-    private WiisicsHandler handler;
-    private String macAddress;
-    public Dialog_Connecting dialog;
+
+class ConnectProcessor implements Runnable {
+    private final WiisicsHandler handler;
+    private final String macAddress;
+    private final Dialog_Connecting dialog;
 
     public ConnectProcessor(WiisicsHandler handler, String MAC, Dialog_Connecting dialog) {
         this.handler = handler;
@@ -22,7 +28,6 @@ public class ConnectProcessor implements Runnable {
         WiiRemote wr = null;
         while (wr == null) {
             if (errors >= 50) {
-                System.out.println("Could not connect to the device.");
                 dialog.dispose();
                 handler.findFailed();
                 return;
@@ -34,15 +39,11 @@ public class ConnectProcessor implements Runnable {
                 return;
             } catch (Exception e) {
                 wr = null;
-                //e.printStackTrace();
-                System.out.println("Failed to connect remote, trying again: Attempt " + (errors + 1) + ".");
                 errors++;
             }
         }
 
-        System.out.println("Ending thread");
         dialog.dispose();
         handler.findFailed();
-        return;
     }
 }

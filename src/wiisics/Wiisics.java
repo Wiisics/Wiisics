@@ -1,18 +1,18 @@
 package wiisics;
 
-import com.intel.bluetooth.BlueCoveConfigProperties;
-import java.awt.*;
+import wiiremotej.event.WRAccelerationEvent;
+import wiiremotej.event.WiiRemoteAdapter;
+
 import javax.swing.*;
-import wiiremotej.*;
-import wiiremotej.event.*;
 
 
 public class Wiisics extends WiiRemoteAdapter {
-    private WiisicsHandler handler;
+    private final WiisicsHandler handler;
     public boolean running;
     private double[] calibratedData;
     private boolean calibrating;
     private Calibrator calibrator;
+    private JDialog calibratingDialog;
 
     public Wiisics(WiisicsHandler handler) {
         this.handler = handler;
@@ -28,19 +28,17 @@ public class Wiisics extends WiiRemoteAdapter {
             if (calibrator == null) {
                 calibrator = new Calibrator(handler, evt.getPitch(), evt.getRoll(), data);
             } else {
-                System.out.println("Adding calibration data");
                 calibrator.addData(evt.getPitch(), evt.getRoll(), data);
             }
-        }
-        else if (running) {
+        } else if (running) {
             if (calibratedData.length == 5) {
                 PhysicsProcessor physics = handler.getPhysicsProcessor();
                 Debugger.println("Acceleration input received");
 
-                physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), calibratedData);
+                physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), calibratedData, evt.isStill());
                 handler.getDisplay().update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
             } else {
-                System.out.println("Missing calibration");
+                running = false;
             }
         }
     }
@@ -48,13 +46,26 @@ public class Wiisics extends WiiRemoteAdapter {
     public void calibrate() {
         if (!calibrating) {
             calibrating = true;
-            System.out.println("Start calibration");
+            if (calibratingDialog == null) {
+                calibratingDialog = new Dialog_Calibrating(handler.getDisplay(), false);
+                calibratingDialog.setVisible(true);
+            }
         }
     }
 
     public void calibrationResults(double[] results) {
         calibrator = null;
         calibrating = false;
+        if (calibratingDialog != null) {
+            calibratingDialog.dispose();
+            calibratingDialog = null;
+        }
+
+        if (results.length == 5) {
+            new Dialog_CalibratePass(handler.getDisplay(), false);
+        } else {
+            new Dialog_CalibrateFail(handler.getDisplay(), false);
+        }
 
         calibratedData = results;
         handler.getDisplay().refresh();
