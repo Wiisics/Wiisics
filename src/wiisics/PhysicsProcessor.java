@@ -13,12 +13,10 @@ import java.text.DecimalFormat;
  * @author funstein
  */
 public class PhysicsProcessor {
+    private static final double STILLNESS_THRESHOLD = 0.1;
+
     private long beginTime = 0;
     private long thisTime = 0;
-    private long lastTime = 0;
-
-    private double pitch = 0;
-    private double roll = 0;
 
     private double[] acceleration = new double[3];
     private double[] lastAcceleration = new double[3];
@@ -36,13 +34,13 @@ public class PhysicsProcessor {
         thisTime = -1;
     }
 
-    public void update(double xInput, double yInput, double zInput, double[] calibratedData, boolean isStill) {
+    public void update(double xInput, double yInput, double zInput, double[] calibratedData) {
         if (beginTime != -1) {
-            lastTime = thisTime;
+            long lastTime = thisTime;
             thisTime = System.currentTimeMillis();
 
-            pitch = calibratedData[0];
-            roll = calibratedData[1];
+            double pitch = calibratedData[0];
+            double roll = calibratedData[1];
 
             lastAcceleration[0] = acceleration[0];
             lastAcceleration[1] = acceleration[1];
@@ -56,21 +54,22 @@ public class PhysicsProcessor {
             lastDisplacement[1] = displacement[1];
             lastDisplacement[2] = displacement[2];
 
-            if (!isStill) {
-                acceleration = new double[]{xInput, yInput, zInput};
-                acceleration = fixAcceleration(acceleration, calibratedData);
+            acceleration = new double[]{xInput, yInput, zInput};
+            acceleration = fixAcceleration(acceleration, calibratedData);
+
+            if (!isStill(acceleration)) {
                 acceleration[0] = round(acceleration[0]);
                 acceleration[1] = round(acceleration[1]);
                 acceleration[2] = round(acceleration[2]);
 
                 long deltaT = thisTime - lastTime;
-                velocity[0] = acceleration[0] * (deltaT / 1000.0) + lastVelocity[0];
-                velocity[1] = acceleration[1] * (deltaT / 1000.0) + lastVelocity[1];
-                velocity[2] = acceleration[2] * (deltaT / 1000.0) + lastVelocity[2];
+                velocity[0] = ((acceleration[0] + lastAcceleration[0]) / 2) * (deltaT / 1000.0) + lastVelocity[0];
+                velocity[1] = ((acceleration[1] + lastAcceleration[1]) / 2) * (deltaT / 1000.0) + lastVelocity[1];
+                velocity[2] = ((acceleration[2] + lastAcceleration[2]) / 2) * (deltaT / 1000.0) + lastVelocity[2];
 
-                displacement[0] = velocity[0] * (deltaT / 1000.0) + lastDisplacement[0];
-                displacement[1] = velocity[1] * (deltaT / 1000.0) + lastDisplacement[1];
-                displacement[2] = velocity[2] * (deltaT / 1000.0) + lastDisplacement[2];
+                displacement[0] = ((velocity[0] + lastVelocity[0]) / 2) * (deltaT / 1000.0) + lastDisplacement[0];
+                displacement[1] = ((velocity[1] + lastVelocity[1]) / 2) * (deltaT / 1000.0) + lastDisplacement[1];
+                displacement[2] = ((velocity[2] + lastVelocity[2]) / 2) * (deltaT / 1000.0) + lastDisplacement[2];
             } else {
                 long deltaT = thisTime - lastTime;
 
@@ -149,12 +148,20 @@ public class PhysicsProcessor {
         return thisTime;
     }
 
-    public long getBeginTime() {
-        return beginTime;
-    }
-
     private static double round(double value) {
         return value;
         //return Double.valueOf(newFormat.format(value));
+    }
+
+    private static boolean isStill (double[] fixedAcc) {
+        boolean stillness = true;
+        for (double aFixedAcc : fixedAcc) {
+            if (Math.abs(aFixedAcc) > STILLNESS_THRESHOLD) {
+                stillness = false;
+                break;
+            }
+        }
+
+        return stillness;
     }
 }

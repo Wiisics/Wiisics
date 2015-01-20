@@ -11,16 +11,12 @@ import java.io.File;
 class ImageFilter extends FileFilter {
     @Override
     public boolean accept(File f) {
-        if (f.isDirectory()) {
-            return true;
-        }
-
-        return FilenameUtils.isExtension(f.getAbsolutePath(), "png");
+        return f.isDirectory() || FilenameUtils.isExtension(f.getAbsolutePath(), "png"); //NON-NLS
 
     }
 
     @Override
     public String getDescription() {
-        return "Export Graphs as Image (.png)";
+        return WiisicsHandler.RESOURCE_BUNDLE.getString("export.data.png");
     }
 }

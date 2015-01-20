@@ -16,7 +16,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Random;
 
@@ -24,11 +23,6 @@ public class Display extends JFrame {
 
     private final WiisicsHandler handler;
 
-    private JMenuBar menuBar1;
-    private JMenu menu1;
-    private JMenuItem menuItem1;
-    private JMenu menu2;
-    private JMenuItem menuItem2;
     private Toolbar toolbar;
     private final Random rand;
 
@@ -55,8 +49,7 @@ public class Display extends JFrame {
                 double[][] data = nextItem.getValue();
                 for (int i = 0; i < data.length; i++) {
                     double[] dataSet = data[i];
-                    for (int j = 0; j < dataSet.length; j++) {
-                        double value = dataSet[j];
+                    for (double value : dataSet) {
                         if (value > values[i][1])
                             values[i][1] = value;
                         if (value < values[i][0])
@@ -71,8 +64,8 @@ public class Display extends JFrame {
     public void reset() {
         graphList.clear();
         rescale();
-        for (int i = 0; i < panels.length; i++) {
-            panels[i].repaint();
+        for (GraphPanel panel : panels) {
+            panel.repaint();
         }
     }
 
@@ -85,7 +78,6 @@ public class Display extends JFrame {
     }
 
     public void update(long time, double[] s, double[] v, double[] a) {
-        Debugger.println("Update command received.");
         double sSum = 0;
         double[] newS = new double[4];
         for (int i = 0; i < s.length; i++) {
@@ -118,27 +110,27 @@ public class Display extends JFrame {
         GraphDot dot = new GraphDot(time, values);
         graphList.add(dot);
         rescale();
-        for (int i = 0; i < panels.length; i++) {
-            panels[i].repaint();
+        for (GraphPanel panel : panels) {
+            panel.repaint();
         }
     }
 
     private void initComponents() {
-        menuBar1 = new JMenuBar();
-        menu1 = new JMenu();
-        menuItem1 = new JMenuItem();
-        menu2 = new JMenu();
-        menuItem2 = new JMenuItem();
+        JMenuBar menuBar1 = new JMenuBar();
+        JMenu menu1 = new JMenu();
+        JMenuItem menuItem1 = new JMenuItem();
+        JMenu menu2 = new JMenu();
+        JMenuItem menuItem2 = new JMenuItem();
 
         //======== this ========
-        setTitle("Wiisics v0.1");
+        setTitle(WiisicsHandler.RESOURCE_BUNDLE.getString("wiisics.version"));
         Container contentPane = getContentPane();
         setLayout(new BorderLayout());
         toolbar = new Toolbar(handler);
         getContentPane().add(toolbar, BorderLayout.PAGE_START);
 
         contentsPanel = new JPanel();
-        getContentPane().add(contentsPanel, BorderLayout.PAGE_END);
+        contentPane.add(contentsPanel, BorderLayout.PAGE_END);
         contentsPanel.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), 0, 0, true, true));
 
         //======== menuBar1 ========
@@ -146,20 +138,20 @@ public class Display extends JFrame {
 
             //======== menu1 ========
             {
-                menu1.setText("File");
+                menu1.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("file"));
 
                 //---- menuItem1 ----
-                menuItem1.setText("Close");
+                menuItem1.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("close"));
                 menu1.add(menuItem1);
             }
             menuBar1.add(menu1);
 
             //======== menu2 ========
             {
-                menu2.setText("Help");
+                menu2.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("help"));
 
                 //---- menuItem2 ----
-                menuItem2.setText("About");
+                menuItem2.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("about"));
                 menu2.add(menuItem2);
             }
             menuBar1.add(menu2);
@@ -169,22 +161,22 @@ public class Display extends JFrame {
         final Display display = this;
         menuItem2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Dialog_About dialog = new Dialog_About(display, true);
+                new Dialog_About(display, true);
             }
         });
 
         panels = new GraphPanel[12];
 
-        String[] names = {"X", "Y", "Z"};
+        String[] names = {"X", "Y", "Z"}; //NON-NLS NON-NLS
         for (int i = 0; i < 3; i++) {
-            panels[i] = generatePanel("s" + names[i], i);
-            panels[4 + i] = generatePanel("v" + names[i], 4 + i);
-            panels[8 + i] = generatePanel("a" + names[i], 8 + i);
+            panels[i] = generatePanel("s" + names[i], i); //NON-NLS
+            panels[4 + i] = generatePanel("v" + names[i], 4 + i); //NON-NLS
+            panels[8 + i] = generatePanel("a" + names[i], 8 + i); //NON-NLS
         }
 
-        panels[3] = generatePanel("sMag", 3);
-        panels[7] = generatePanel("vMag", 7);
-        panels[11] = generatePanel("aMag", 11);
+        panels[3] = generatePanel("sMag", 3); //NON-NLS
+        panels[7] = generatePanel("vMag", 7); //NON-NLS
+        panels[11] = generatePanel("aMag", 11); //NON-NLS
 
         pack();
         setLocationRelativeTo(null);
@@ -215,7 +207,6 @@ public class Display extends JFrame {
         Container contentPane = contentsPanel; //getContentPane();
 
         int numPanels = contentPane.getComponentCount();
-        Debugger.println((numPanels + 1) + ". panel: column " + (numPanels % 4) + " and row " + (numPanels / 4));
         contentPane.add(panel,
                 new GridConstraints(numPanels % 3, numPanels / 3, 1, 1,
                         GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
@@ -228,8 +219,8 @@ public class Display extends JFrame {
     }
 
     public void refresh() {
-        for (int i = 0; i < panels.length; i++) {
-            panels[i].repaint();
+        for (GraphPanel panel : panels) {
+            panel.repaint();
         }
 
         toolbar.refresh();

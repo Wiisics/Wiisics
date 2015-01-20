@@ -10,7 +10,7 @@ package wiisics;
  */
 
 class Calibrator {
-    private static final double cancellationThreshold = 0.05;
+    private static final double cancellationThreshold = 0.1;
     private static final int calibrationSeconds = 5;
 
     private final long startTime;
@@ -131,11 +131,10 @@ class Calibrator {
 
     private static double calculateAccelerationMagnitude(double[] acceleration) {
         double squareSum = 0;
-        for (int i = 0; i < acceleration.length; i++) {
-            squareSum += Math.pow(acceleration[i], 2);
+        for (double anAcceleration : acceleration) {
+            squareSum += Math.pow(anAcceleration, 2);
         }
-        double aMagn = Math.sqrt(squareSum);
 
-        return aMagn;
+        return Math.sqrt(squareSum);
     }
 }

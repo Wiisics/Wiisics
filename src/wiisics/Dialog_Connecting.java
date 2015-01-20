@@ -4,40 +4,25 @@ import javax.swing.*;
 
 public class Dialog_Connecting extends JDialog {
 
-    private final WiisicsHandler handler;
-
-    /**
-     * Creates new form Initial
-     */
-    public Dialog_Connecting(java.awt.Frame parent, boolean modal, WiisicsHandler handler) {
+    public Dialog_Connecting(JFrame parent, boolean modal) {
         super(parent, modal);
-        this.handler = handler;
         initComponents();
-        setLocationRelativeTo(parent);
-        setVisible(true);
     }
 
     private void initComponents() {
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        cancel = new javax.swing.JButton();
+
+        JLabel jLabel1 = new javax.swing.JLabel();
+        JLabel jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N NON-NLS
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Wiisics Initialization");
+        jLabel1.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("initialization"));
 
         jLabel2.setForeground(new java.awt.Color(0, 102, 0));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Connecting to Wiimote.");
-
-        cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelActionPerformed(evt);
-            }
-        });
+        jLabel2.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("connecting"));
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -45,9 +30,7 @@ public class Dialog_Connecting extends JDialog {
                 layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                         .add(layout.createSequentialGroup()
                                 .add(6, 6, 6)
-                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                        .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .add(cancel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 440, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .add(layout.createSequentialGroup()
                                 .addContainerGap()
@@ -61,20 +44,12 @@ public class Dialog_Connecting extends JDialog {
                                 .add(jLabel1)
                                 .add(6, 6, 6)
                                 .add(jLabel2)
-                                .add(6, 6, 6)
-                                .add(cancel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 48, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .add(17, 17, 17))
         );
 
         pack();
+        setLocationRelativeTo(getParent());
+        setResizable(false);
+        setVisible(true);
     }
-
-    private void cancelActionPerformed(java.awt.event.ActionEvent evt) {
-        handler.findFailed();
-    }
-
-    // Variables declaration - do not modify
-    private javax.swing.JButton cancel;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    // End of variables declaration
 }

@@ -20,11 +20,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * Created by funstein on 08/01/15.
  */
 class WiisicsHandler {
+    public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("locales.Displays", new Locale("tr")); //NON-NLS
+
     public Wiisics getWiisics() {
         return wiisics;
     }
@@ -35,10 +39,6 @@ class WiisicsHandler {
 
     public PhysicsProcessor getPhysicsProcessor() {
         return physics;
-    }
-
-    public WiiRemote getWiiremote() {
-        return wiiremote;
     }
 
     public void disconnect() {
@@ -54,20 +54,18 @@ class WiisicsHandler {
     private final Display display;
     private PhysicsProcessor physics;
     private WiiRemote wiiremote;
-    private final WiisicsHandler handler;
 
     public WiisicsHandler() throws Exception {
-        handler = this;
         WiiRemoteJ.setConsoleLoggingAll();
         System.setProperty(BlueCoveConfigProperties.PROPERTY_JSR_82_PSM_MINIMUM_OFF, "true"); //Fix for weird bug in BlueCove
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         String lcOSName = System.getProperty("os.name").toLowerCase();
-        boolean IS_MAC = lcOSName.startsWith("mac os x");
+        boolean IS_MAC = lcOSName.startsWith("mac os x"); //NON-NLS
         if (IS_MAC) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Wiisics");
-            Application.getApplication().setDockIconImage(ImageIO.read(Class.forName("wiisics.Wiisics").getResourceAsStream("Wiisics.png")));
+            Application.getApplication().setDockIconImage(ImageIO.read(Class.forName("wiisics.Wiisics").getResourceAsStream("Wiisics.png"))); //NON-NLS
         }
 
         this.display = new Display(this);
@@ -77,7 +75,7 @@ class WiisicsHandler {
             Application.getApplication().setAboutHandler(new AboutHandler() {
                 @Override
                 public void handleAbout(AppEvent.AboutEvent aboutEvent) {
-                    Dialog_About dialog = new Dialog_About(display, true);
+                    new Dialog_About(display, true);
                 }
             });
         }
@@ -95,38 +93,18 @@ class WiisicsHandler {
                     return;
             }
 
-            Dialog_Connecting connecting = new Dialog_Connecting(this.getDisplay(), false, this);
-            int errors = 0;
-            WiiRemote wr = null;
-            while (wr == null) {
-                if (errors >= 50) {
-                    connecting.dispose();
-                    findFailed();
-                    return;
-                }
-                try {
-                    wr = WiiRemoteJ.connectToRemote(address);
-                    connecting.dispose();
-                    connectResults(wr);
-                    return;
-                } catch (Exception e) {
-                    wr = null;
-                    errors++;
-                }
-            }
+            Dialog_Connecting connecting = new Dialog_Connecting(this.getDisplay(), false);
+            connecting.setVisible(true);
+            (new ConnectProcessor(this, address, connecting)).execute();
         }
-    }
-
-    public void findFailed() {
-        handler.connectResults(null);
     }
 
     public void connectResults(WiiRemote remote) {
         if (remote == null) {
-            Dialog_ConnectFail failed = new Dialog_ConnectFail(display, true);
+            new Dialog_ConnectFail(display, true);
             startConnect();
         } else {
-            Dialog_ConnectPass passed = new Dialog_ConnectPass(display, false);
+            new Dialog_ConnectPass(display, false);
             this.wiiremote = remote;
             this.physics = new PhysicsProcessor();
             this.wiisics = new Wiisics(this);
@@ -186,13 +164,13 @@ class WiisicsHandler {
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
                 if (fc.getFileFilter() == f2) {
-                    if (!FilenameUtils.isExtension(file.getAbsolutePath(), "png")) {
+                    if (!FilenameUtils.isExtension(file.getAbsolutePath(), "png")) { //NON-NLS
                         file = new File(file.getAbsolutePath() + ".png");
                     }
                     if (!wiisics.running) {
                         // Figure out the image height and width
-                        int height = 400;
-                        double millisecondWidth = 400.0 / (GraphPanel.GRAPH_TIMEFRAME * 1000);
+                        int height = 100;
+                        double millisecondWidth = height / (GraphPanel.GRAPH_TIMEFRAME * 1000.0);
                         int width = (int) (Math.abs(display.getGraphList().get(0).getTime() - display.getGraphList().get(display.getGraphList().size() - 1).getTime()) * millisecondWidth + 0.5);
 
                         // Draw the individual panels
@@ -232,19 +210,19 @@ class WiisicsHandler {
                         g2.dispose();
 
                         try {
-                            ImageIO.write(newImage, "png", file);
+                            ImageIO.write(newImage, "png", file); //NON-NLS
                         } catch (IOException ex) {
                         }
                     }
 
                 } else {
-                    if (!FilenameUtils.isExtension(file.getAbsolutePath(), "csv")) {
+                    if (!FilenameUtils.isExtension(file.getAbsolutePath(), "csv")) { //NON-NLS
                         file = new File(file.getAbsolutePath() + ".csv");
                     }
 
                     FileWriter fileWriter = null;
                     CSVPrinter csvFilePrinter = null;
-                    CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader("timestamp", "aX", "aY", "aZ", "aMag", "vX", "vY", "vZ", "vMag", "sX", "sY", "sZ", "sMag").withRecordSeparator("\n");
+                    CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader("timestamp", "aX", "aY", "aZ", "aMag", "vX", "vY", "vZ", "vMag", "sX", "sY", "sZ", "sMag").withRecordSeparator("\n"); //NON-NLS
 
                     try {
                         fileWriter = new FileWriter(file);

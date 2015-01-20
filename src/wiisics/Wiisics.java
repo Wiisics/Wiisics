@@ -33,9 +33,8 @@ public class Wiisics extends WiiRemoteAdapter {
         } else if (running) {
             if (calibratedData.length == 5) {
                 PhysicsProcessor physics = handler.getPhysicsProcessor();
-                Debugger.println("Acceleration input received");
 
-                physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), calibratedData, evt.isStill());
+                physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), calibratedData);
                 handler.getDisplay().update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
             } else {
                 running = false;
@@ -48,7 +47,6 @@ public class Wiisics extends WiiRemoteAdapter {
             calibrating = true;
             if (calibratingDialog == null) {
                 calibratingDialog = new Dialog_Calibrating(handler.getDisplay(), false);
-                calibratingDialog.setVisible(true);
             }
         }
     }

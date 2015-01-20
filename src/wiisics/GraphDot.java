@@ -17,7 +17,6 @@ class GraphDot {
         this.time = time;
         this.value = value;
         this.pause = false;
-        Debugger.println("Graph dot created.");
     }
 
     public GraphDot(long time) {

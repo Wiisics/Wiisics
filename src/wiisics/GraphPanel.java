@@ -69,16 +69,16 @@ public class GraphPanel extends JPanel {
         // Draw the top
         FontMetrics metrics = graphics.getFontMetrics();
         int descent = metrics.getDescent();
-        graphics.drawString(String.format("% .2f", -1 * 2 * topRealIncrement), 0, yCoord + (-1 * 2 * topPixelIncrement) + descent);
-        graphics.drawString(String.format("% .2f", -1 * 1 * topRealIncrement), 0, yCoord + (-1 * 1 * topPixelIncrement) + descent);
-        graphics.drawString(String.format("% .2f", -1 * 0 * topRealIncrement), 0, yCoord + descent);
-        graphics.drawString(String.format("% .2f", -1 * -1 * bottomRealIncrement), 0, yCoord + (-1 * -1 * bottomPixelIncrement) + descent);
-        graphics.drawString(String.format("% .2f", -1 * -2 * bottomRealIncrement), 0, yCoord + (-1 * -2 * bottomPixelIncrement) + descent);
+        graphics.drawString(String.format("% .2f", -1 * 2 * topRealIncrement), 0, yCoord + (-1 * 2 * topPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -1 * 1 * topRealIncrement), 0, yCoord + (-1 * 1 * topPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -1 * 0 * topRealIncrement), 0, yCoord + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -1 * -1 * bottomRealIncrement), 0, yCoord + (-1 * -1 * bottomPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -1 * -2 * bottomRealIncrement), 0, yCoord + (-1 * -2 * bottomPixelIncrement) + descent); //NON-NLS
 
         //Now let's start drawing the graphs
         graphics.setColor(Color.RED);
         GraphDot future = null;
-        GraphDot past = null;
+        GraphDot past;
         double lastX = width;
         ListIterator<GraphDot> it2 = list.listIterator(list.size());
         while (it2.hasPrevious()) {
@@ -111,7 +111,6 @@ public class GraphPanel extends JPanel {
                 past = null;
             }
         }
-        it2 = null;
 
         graphics.setColor(Color.BLUE);
         graphics.drawString(name, (int) (width - (metrics.stringWidth(name) + 5)), metrics.getHeight() + 5);

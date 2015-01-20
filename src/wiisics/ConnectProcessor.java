@@ -3,6 +3,8 @@ package wiisics;
 import wiiremotej.WiiRemote;
 import wiiremotej.WiiRemoteJ;
 
+import javax.swing.*;
+
 /*
  * Wiisics
  * ConnectProcessor.java
@@ -12,7 +14,7 @@ import wiiremotej.WiiRemoteJ;
  * Hakan Alpan <hakan.alpan@hotmail.com>
  */
 
-class ConnectProcessor implements Runnable {
+class ConnectProcessor extends SwingWorker<WiiRemote, Object> {
     private final WiisicsHandler handler;
     private final String macAddress;
     private final Dialog_Connecting dialog;
@@ -23,27 +25,30 @@ class ConnectProcessor implements Runnable {
         this.dialog = dialog;
     }
 
-    public void run() {
+    public WiiRemote doInBackground() {
         int errors = 0;
         WiiRemote wr = null;
-        while (wr == null) {
+        while (true) {
             if (errors >= 50) {
-                dialog.dispose();
-                handler.findFailed();
-                return;
+                return null;
             }
             try {
                 wr = WiiRemoteJ.connectToRemote(macAddress); //WiiRemoteJ.findRemote(); // Put the Bluetooth MAC here
-                dialog.dispose();
-                handler.connectResults(wr);
-                return;
+                return wr;
             } catch (Exception e) {
                 wr = null;
                 errors++;
             }
         }
+    }
 
-        dialog.dispose();
-        handler.findFailed();
+    @Override
+    protected void done() {
+        try {
+            WiiRemote remote = get();
+            dialog.dispose();
+            handler.connectResults(remote);
+        } catch (Exception ignore) {
+        }
     }
 }

@@ -4,6 +4,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
+import java.util.ResourceBundle;
 
 /**
  * Created by funstein on 12/01/15.
@@ -11,17 +12,12 @@ import java.io.File;
 class CSVFilter extends FileFilter {
     @Override
     public boolean accept(File f) {
-        if (f.isDirectory()) {
-            return true;
-        }
-
-        return FilenameUtils.isExtension(f.getAbsolutePath(), "csv");
+        return f.isDirectory() || FilenameUtils.isExtension(f.getAbsolutePath(), "csv"); //NON-NLS
 
     }
 
     @Override
     public String getDescription() {
-        return "Export Data (.csv)";
-
+        return WiisicsHandler.RESOURCE_BUNDLE.getString("export.data.csv");
     }
 }
