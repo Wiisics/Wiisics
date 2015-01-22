@@ -128,17 +128,25 @@ class Toolbar extends JToolBar {
         double[] calibratedData = handler.getWiisics().getCalibratedData();
 
         String pitchString = WiisicsHandler.RESOURCE_BUNDLE.getString("pitch") + " ";
-        if (calibratedData.length == 5)
-            pitchString += String.format(WiisicsHandler.RESOURCE_BUNDLE.getString("d.degrees"), (int) (Math.toDegrees(calibratedData[0]) + 0.5));
-        else
+        if (calibratedData.length == 5) {
+            int pitch = (int) (Math.toDegrees(calibratedData[0]) + 0.5);
+            if (pitch > 180)
+                pitch = 360 - pitch;
+            pitchString += String.format(WiisicsHandler.RESOURCE_BUNDLE.getString("d.degrees"), pitch);
+        } else {
             pitchString += WiisicsHandler.RESOURCE_BUNDLE.getString("notavailable");
+        }
         lblPitch.setText(pitchString);
 
         String rollString = WiisicsHandler.RESOURCE_BUNDLE.getString("roll") + " ";
-        if (calibratedData.length == 5)
-            rollString += String.format(WiisicsHandler.RESOURCE_BUNDLE.getString("d.degrees"), (int) (Math.toDegrees(calibratedData[1]) + 0.5));
-        else
+        if (calibratedData.length == 5) {
+            int roll = (int) (Math.toDegrees(calibratedData[1]) + 0.5);
+            if (roll > 180)
+                roll = 360 - roll;
+            rollString += String.format(WiisicsHandler.RESOURCE_BUNDLE.getString("d.degrees"), roll);
+        } else {
             rollString += WiisicsHandler.RESOURCE_BUNDLE.getString("notavailable");
+        }
         lblRoll.setText(rollString);
     }
 

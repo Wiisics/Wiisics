@@ -33,8 +33,8 @@ public class GraphPanel extends JPanel {
     }
 
     public void paintGraphPanel(Graphics graphics, double width, double height) {
-        // Calculate the width of one millisecond if the entire graph will encompass 10 seconds
-        double secondWidth = width / GRAPH_TIMEFRAME;
+        // Calculate the width of one second if the entire graph will encompass 10 seconds
+        double secondWidth = height / GRAPH_TIMEFRAME;
 
         // Make a clone of the linkedlist for use here
         GraphList<GraphDot> list = handler.getDisplay().getGraphList();
@@ -67,13 +67,46 @@ public class GraphPanel extends JPanel {
         double bottomRealIncrement = bottomPixelIncrement / multiplier;
 
         // Draw the top
+        float size = graphics.getFont().getSize2D() * (float) (height / 300.0);
+        Font font = graphics.getFont().deriveFont(size);
+        graphics.setFont(font);
         FontMetrics metrics = graphics.getFontMetrics();
         int descent = metrics.getDescent();
-        graphics.drawString(String.format("% .2f", -1 * 2 * topRealIncrement), 0, yCoord + (-1 * 2 * topPixelIncrement) + descent); //NON-NLS
-        graphics.drawString(String.format("% .2f", -1 * 1 * topRealIncrement), 0, yCoord + (-1 * 1 * topPixelIncrement) + descent); //NON-NLS
-        graphics.drawString(String.format("% .2f", -1 * 0 * topRealIncrement), 0, yCoord + descent); //NON-NLS
-        graphics.drawString(String.format("% .2f", -1 * -1 * bottomRealIncrement), 0, yCoord + (-1 * -1 * bottomPixelIncrement) + descent); //NON-NLS
-        graphics.drawString(String.format("% .2f", -1 * -2 * bottomRealIncrement), 0, yCoord + (-1 * -2 * bottomPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", 2 * topRealIncrement), 0, yCoord + (-1 * 2 * topPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", 1 * topRealIncrement), 0, yCoord + (-1 * 1 * topPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -0 * topRealIncrement), 0, yCoord + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -1 * bottomRealIncrement), 0, yCoord + (-1 * -1 * bottomPixelIncrement) + descent); //NON-NLS
+        graphics.drawString(String.format("% .2f", -2 * bottomRealIncrement), 0, yCoord + (-1 * -2 * bottomPixelIncrement) + descent); //NON-NLS
+
+        if (list.size() > 0) {
+            // Let's try and get the time information ready
+            long maxTime = list.get(list.size() - 1).getTime(); // Get the latest data time
+            long timeFit = (long) ((width / secondWidth) * 1000); // How many milliseconds fit?
+            long minTime = maxTime - timeFit; // The smallest data time
+            long zeroTime = list.get(0).getTime();
+            boolean zeroFits = minTime < zeroTime; // Does zero fit in the frame?
+
+            int minSeconds, maxSeconds;
+            if (zeroFits) {
+                // If zero is in the frame, start from zero and keep going
+                minSeconds = 0;
+                maxSeconds = ((int) ((maxTime - zeroTime) / 1000.0));
+            } else {
+                // Otherwise, start from the right side and keep going backwards
+                maxSeconds = (int) ((maxTime - zeroTime) / 1000.0);
+                minSeconds = (int) (((minTime - zeroTime) / 1000.0) + 0.5D);
+            }
+
+            // Draw the timestamps!
+            for (int currentSecond = maxSeconds; currentSecond >= minSeconds; currentSecond--) {
+                long milliseconds = (currentSecond * 1000) + zeroTime;
+                int middleX = (int) (width - (((maxTime - milliseconds) * (secondWidth / 1000.0))));
+                String print = currentSecond + "s";
+                int startX = middleX - (metrics.stringWidth(print) / 2);
+                if (zeroFits && startX < 0)
+                    startX = 0;
+                graphics.drawString(print, startX, (int) ((height / 2) - ((descent * 2) + 5)));            }
+        }
 
         //Now let's start drawing the graphs
         graphics.setColor(Color.RED);
@@ -101,7 +134,7 @@ public class GraphPanel extends JPanel {
                         break;
                     double startY = (int) (padding + ((topValue - future.getValue()[number / 4][number % 4]) * multiplier));
 
-                    double endX = lastX - ((int) (((future.getTime() - past.getTime()) * secondWidth) / 1000));
+                    double endX = lastX - ((int) (((future.getTime() - past.getTime()) * secondWidth) / 1000.0));
                     double endY = (int) (padding + ((topValue - past.getValue()[number / 4][number % 4]) * multiplier));
 
                     graphics.drawLine((int) startX, (int) startY, (int) endX, (int) endY);

@@ -129,7 +129,13 @@ public class PhysicsProcessor {
         Matrix accelerationVMatrix = new Matrix(accelerationVector);
 
         Matrix endVector = accelerationVMatrix.times(inverted);
-        return endVector.getArrayCopy()[0];
+        double[] result = endVector.getArrayCopy()[0];
+
+        // Here we convert from g to ms^-2
+        for (int i = 0; i < result.length; i++) {
+            result[i] *= 9.81;
+        }
+        return result;
     }
 
     public double[] getAcceleration() {

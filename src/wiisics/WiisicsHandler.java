@@ -169,7 +169,7 @@ class WiisicsHandler {
                     }
                     if (!wiisics.running) {
                         // Figure out the image height and width
-                        int height = 100;
+                        int height = 400;
                         double millisecondWidth = height / (GraphPanel.GRAPH_TIMEFRAME * 1000.0);
                         int width = (int) (Math.abs(display.getGraphList().get(0).getTime() - display.getGraphList().get(display.getGraphList().size() - 1).getTime()) * millisecondWidth + 0.5);
 
@@ -190,6 +190,7 @@ class WiisicsHandler {
                             }
                             component.paintGraphPanel(g, width, height);
                             images[i] = image;
+                            g.dispose();
                         }
 
                         // Join them now

@@ -40,8 +40,8 @@ public class Display extends JFrame {
 
         double[][] values = graphList.getLimits();
         for (int i = 0; i < values.length; i++) {
-            values[i][0] = -1;
-            values[i][1] = 1;
+            values[i][0] = -10;
+            values[i][1] = 10;
         }
         while (it.hasNext()) {
             GraphDot nextItem = it.next();
