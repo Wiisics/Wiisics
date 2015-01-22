@@ -14,7 +14,7 @@ public class Dialog_Connecting extends JDialog {
         JLabel jLabel1 = new javax.swing.JLabel();
         JLabel jLabel2 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N NON-NLS
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

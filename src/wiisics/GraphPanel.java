@@ -84,7 +84,7 @@ public class GraphPanel extends JPanel {
             long timeFit = (long) ((width / secondWidth) * 1000); // How many milliseconds fit?
             long minTime = maxTime - timeFit; // The smallest data time
             long zeroTime = list.get(0).getTime();
-            boolean zeroFits = minTime < zeroTime; // Does zero fit in the frame?
+            boolean zeroFits = minTime <= zeroTime; // Does zero fit in the frame?
 
             int minSeconds, maxSeconds;
             if (zeroFits) {
@@ -100,48 +100,43 @@ public class GraphPanel extends JPanel {
             // Draw the timestamps!
             for (int currentSecond = maxSeconds; currentSecond >= minSeconds; currentSecond--) {
                 long milliseconds = (currentSecond * 1000) + zeroTime;
-                int middleX = (int) (width - (((maxTime - milliseconds) * (secondWidth / 1000.0))));
+                int middleX = (int) (width - ((((maxTime - milliseconds) * (long) secondWidth) / 1000.0)));
                 String print = currentSecond + "s";
                 int startX = middleX - (metrics.stringWidth(print) / 2);
                 if (zeroFits && startX < 0)
                     startX = 0;
-                graphics.drawString(print, startX, (int) ((height / 2) - ((descent * 2) + 5)));            }
-        }
 
-        //Now let's start drawing the graphs
-        graphics.setColor(Color.RED);
-        GraphDot future = null;
-        GraphDot past;
-        double lastX = width;
-        ListIterator<GraphDot> it2 = list.listIterator(list.size());
-        while (it2.hasPrevious()) {
-            past = it2.previous();
-            if (past.isPause()) {
-                double startX = lastX;
-                if (startX < 0)
-                    break;
-                double startY = 0;
+                graphics.drawLine(middleX, yCoord + 3, middleX, yCoord - 3); // Draw the tick
+                graphics.drawString(print, startX, (int) (yCoord - ((descent * 2) + 5))); // And then the text
+            }
 
-                graphics.setColor(Color.BLUE);
-                graphics.drawLine((int) startX, (int) startY, (int) startX, (int) height);
-                graphics.setColor(Color.RED);
-                lastX = startX;
-                future = null;
-            } else {
-                if (future != null) {
-                    double startX = lastX;
-                    if (startX < 0)
-                        break;
-                    double startY = (int) (padding + ((topValue - future.getValue()[number / 4][number % 4]) * multiplier));
+            //Now let's start drawing the graphs
+            graphics.setColor(Color.RED);
+            GraphDot future = null;
+            GraphDot past;
+            ListIterator<GraphDot> it2 = list.listIterator(list.size());
+            while (it2.hasPrevious()) {
+                past = it2.previous();
+                int thisX = (int) (width - ((((maxTime - past.getTime()) * (long) secondWidth) / 1000.0)));
+                if (past.isPause()) {
+                    graphics.setColor(Color.BLUE);
+                    graphics.drawLine(thisX, 0, thisX, (int) height);
+                    graphics.setColor(Color.RED);
+                    future = null;
+                } else {
+                    if (future != null) {
+                        if (thisX < 0)
+                            break;
+                        int thisY = (int) (padding + ((topValue - past.getValue()[number / 4][number % 4]) * multiplier));
 
-                    double endX = lastX - ((int) (((future.getTime() - past.getTime()) * secondWidth) / 1000.0));
-                    double endY = (int) (padding + ((topValue - past.getValue()[number / 4][number % 4]) * multiplier));
+                        int otherX = (int) (width - ((((maxTime - future.getTime()) * (long) secondWidth) / 1000.0)));
+                        int otherY = (int) (padding + ((topValue - future.getValue()[number / 4][number % 4]) * multiplier));
 
-                    graphics.drawLine((int) startX, (int) startY, (int) endX, (int) endY);
-                    lastX = endX;
+                        graphics.drawLine(thisX, thisY, otherX, otherY);
+                    }
+                    future = past;
+                    past = null;
                 }
-                future = past;
-                past = null;
             }
         }
 
