@@ -31,6 +31,8 @@ public class Display extends JFrame {
     private GraphPanel[] panels;
     private GraphList<GraphDot> graphList;
 
+    public boolean[] viewingModes;
+
     public GraphList<GraphDot> getGraphList() {
         return graphList;
     }
@@ -72,9 +74,15 @@ public class Display extends JFrame {
     public Display(WiisicsHandler handler) {
         this.handler = handler;
         this.graphList = new GraphList<GraphDot>();
+        this.viewingModes = new boolean[3];
+        for (int i = 0; i < viewingModes.length; i++) {
+            viewingModes[i] = true;
+        }
         rescale();
         rand = new Random();
         initComponents();
+        updateViewingModes();
+        setLocationRelativeTo(null);
     }
 
     public void update(long time, double[] s, double[] v, double[] a) {
@@ -119,8 +127,25 @@ public class Display extends JFrame {
         JMenuBar menuBar1 = new JMenuBar();
         JMenu menu1 = new JMenu();
         JMenuItem menuItem1 = new JMenuItem();
+
+
         JMenu menu2 = new JMenu();
-        JMenuItem menuItem2 = new JMenuItem();
+        final JCheckBoxMenuItem menuItem211 = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem menuItem212 = new JCheckBoxMenuItem();
+
+        final JCheckBoxMenuItem menuItem221 = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem menuItem222 = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem menuItem223 = new JCheckBoxMenuItem();
+
+        final JCheckBoxMenuItem menuItem231 = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem menuItem232 = new JCheckBoxMenuItem();
+
+        final JCheckBoxMenuItem menuItem241 = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem menuItem242 = new JCheckBoxMenuItem();
+
+
+        JMenu menu3 = new JMenu();
+        JMenuItem menuItem3 = new JMenuItem();
 
         //======== this ========
         setTitle(WiisicsHandler.RESOURCE_BUNDLE.getString("wiisics.version"));
@@ -148,20 +173,151 @@ public class Display extends JFrame {
 
             //======== menu2 ========
             {
-                menu2.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("help"));
+                menu2.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("modes"));
 
-                //---- menuItem2 ----
-                menuItem2.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("about"));
-                menu2.add(menuItem2);
+                //---- Standard Motion v. Harmonic Motion
+                menuItem211.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("standard.motion"));
+                menuItem211.setState(true);
+                menu2.add(menuItem211);
+                menuItem212.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("harmonic.motion"));
+                menu2.add(menuItem212);
+                menu2.addSeparator();
+
+                //---- Display a, v, x
+                menuItem221.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("display.acceleration"));
+                menuItem221.setState(true);
+                menu2.add(menuItem221);
+                menuItem222.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("display.velocity"));
+                menuItem222.setState(true);
+                menu2.add(menuItem222);
+                menuItem223.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("display.displacement"));
+                menuItem223.setState(true);
+                menu2.add(menuItem223);
+                menu2.addSeparator();
+
+                //---- Change sampling vs. Periodical sampling
+                menuItem231.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("change.sampling"));
+                menuItem231.setState(true);
+                menu2.add(menuItem231);
+                menuItem232.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("periodical.sampling"));
+                menu2.add(menuItem232);
+                menu2.addSeparator();
+
+                //---- Functional mode vs. Demo mode
+                menuItem241.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("functional.mode"));
+                menuItem241.setState(true);
+                menu2.add(menuItem241);
+                menuItem242.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("demo.mode"));
+                menu2.add(menuItem242);
+                menu2.addSeparator();
             }
             menuBar1.add(menu2);
+
+            //======== menu3 ========
+            {
+                menu3.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("help"));
+
+                //---- menuItem3 ----
+                menuItem3.setText(WiisicsHandler.RESOURCE_BUNDLE.getString("about"));
+                menu3.add(menuItem3);
+            }
+            menuBar1.add(menu3);
         }
         setJMenuBar(menuBar1);
 
         final Display display = this;
-        menuItem2.addActionListener(new ActionListener() {
+        menuItem3.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new Dialog_About(display, true);
+            }
+        });
+
+        // Viewing mode handlers!
+
+        // Acceleration
+        menuItem221.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (!(display.viewingModes[2] && display.countActiveViewingModes() == 1)) {
+                    display.viewingModes[2] = !display.viewingModes[2];
+                    display.updateViewingModes();
+                }
+                menuItem221.setState(display.viewingModes[2]);
+            }
+        });
+
+        // Velocity
+        menuItem222.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (!(display.viewingModes[1] && display.countActiveViewingModes() == 1)) {
+                    display.viewingModes[1] = !display.viewingModes[1];
+                    display.updateViewingModes();
+                }
+                menuItem222.setState(display.viewingModes[1]);
+            }
+        });
+
+        // Displacement
+        menuItem223.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (!(display.viewingModes[0] && display.countActiveViewingModes() == 1)) {
+                    display.viewingModes[0] = !display.viewingModes[0];
+                    display.updateViewingModes();
+                }
+                menuItem223.setState(display.viewingModes[0]);
+            }
+        });
+
+        // Standard Motion
+        menuItem211.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean harmonicMode = handler.setHarmonicMode(false);
+                menuItem211.setState(!harmonicMode);
+                menuItem212.setState(harmonicMode);
+            }
+        });
+
+        // Harmonic Motion
+        menuItem212.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean harmonicMode = handler.setHarmonicMode(true);
+                menuItem211.setState(!harmonicMode);
+                menuItem212.setState(harmonicMode);
+            }
+        });
+
+        // Change Sampling
+        menuItem231.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean periodicalMode = handler.setPeriodicalMode(false);
+                menuItem231.setState(!periodicalMode);
+                menuItem232.setState(periodicalMode);
+            }
+        });
+
+        // Periodical Sampling
+        menuItem232.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean periodicalMode = handler.setPeriodicalMode(true);
+                menuItem231.setState(!periodicalMode);
+                menuItem232.setState(periodicalMode);
+            }
+        });
+
+        // Functional Mode
+        menuItem241.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean demoMode = handler.setDemoMode(false);
+                menuItem241.setState(!demoMode);
+                menuItem242.setState(demoMode);
+            }
+        });
+
+        // Demo Mode
+        menuItem242.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean demoMode = handler.setDemoMode(true);
+                menuItem241.setState(!demoMode);
+                menuItem242.setState(demoMode);
             }
         });
 
@@ -178,9 +334,43 @@ public class Display extends JFrame {
         panels[7] = generatePanel("vMag", 7); //NON-NLS
         panels[11] = generatePanel("aMag", 11); //NON-NLS
 
-        pack();
+        setResizable(false);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    private void updateViewingModes() {
+        //System.out.println("--- Starting update of viewing mode ---");
+        Container contentPane = contentsPanel;
+        for (int i = 0; i < panels.length; i++) {
+            contentPane.remove(panels[i]);
+        }
+
+        int activeModes = countActiveViewingModes();
+
+        contentsPanel.setLayout(new GridLayoutManager(activeModes, 4, new Insets(0, 0, 0, 0), 0, 0, true, true));
+
+        for (int j = 0; j < 4; j++) {
+            for (int i = 0; i < panels.length / 4; i++) {
+                int key = j + (i * 4);
+                GraphPanel panel = panels[key];
+                //System.out.println("  Box " + j + "(" + panel.getName() + ") has viewing mode " + viewingModes[j / 4]);
+                if (viewingModes[i]) {
+                    int numPanels = contentPane.getComponentCount();
+                    contentPane.add(panel,
+                            new GridConstraints(numPanels % activeModes, numPanels / activeModes, 1, 1,
+                                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                    null, null, null)
+                    );
+                }
+            }
+        }
+
+        refresh();
+        pack();
+        //System.out.println("--- Ended update of viewing mode ---");
     }
 
     private GraphPanel generatePanel(String name, int number) {
@@ -204,17 +394,6 @@ public class Display extends JFrame {
         preferredSize.height += insets.bottom;
         panel.setPreferredSize(preferredSize);
 
-        Container contentPane = contentsPanel; //getContentPane();
-
-        int numPanels = contentPane.getComponentCount();
-        contentPane.add(panel,
-                new GridConstraints(numPanels % 3, numPanels / 3, 1, 1,
-                        GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                        null, null, null)
-        );
-
         return panel;
     }
 
@@ -228,5 +407,16 @@ public class Display extends JFrame {
 
     public GraphPanel[] getPanels() {
         return panels;
+    }
+
+    private int countActiveViewingModes() {
+        int result = 0;
+        for (int i = 0; i < viewingModes.length; i++) {
+            if (viewingModes[i]) {
+                result++;
+            }
+        }
+
+        return result;
     }
 }

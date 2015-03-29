@@ -4,6 +4,7 @@ import wiiremotej.event.WRAccelerationEvent;
 import wiiremotej.event.WiiRemoteAdapter;
 
 import javax.swing.*;
+import java.util.TimerTask;
 
 
 public class Wiisics extends WiiRemoteAdapter {
@@ -13,6 +14,7 @@ public class Wiisics extends WiiRemoteAdapter {
     private boolean calibrating;
     private Calibrator calibrator;
     private JDialog calibratingDialog;
+    //public Timer timer;
 
     public Wiisics(WiisicsHandler handler) {
         this.handler = handler;
@@ -23,18 +25,22 @@ public class Wiisics extends WiiRemoteAdapter {
 
     @Override
     public void accelerationInputReceived(WRAccelerationEvent evt) {
+        performMath(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), evt.getRoll(), evt.getPitch());
+    }
+
+    public void performMath(double aX, double aY, double aZ, double roll, double pitch) {
         if (calibrating) {
-            double[] data = new double[]{evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration()};
+            double[] data = new double[]{aX, aY, aZ};
             if (calibrator == null) {
-                calibrator = new Calibrator(handler, evt.getPitch(), evt.getRoll(), data);
+                calibrator = new Calibrator(handler, pitch, roll, data);
             } else {
-                calibrator.addData(evt.getPitch(), evt.getRoll(), data);
+                calibrator.addData(pitch, roll, data);
             }
         } else if (running) {
             if (calibratedData.length == 5) {
                 PhysicsProcessor physics = handler.getPhysicsProcessor();
 
-                physics.update(evt.getXAcceleration(), evt.getYAcceleration(), evt.getZAcceleration(), calibratedData);
+                physics.update(aX, aY, aZ, calibratedData);
                 handler.getDisplay().update(physics.getTime(), physics.getDisplacement(), physics.getVelocity(), physics.getAcceleration());
             } else {
                 running = false;

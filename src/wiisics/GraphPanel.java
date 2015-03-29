@@ -143,4 +143,8 @@ public class GraphPanel extends JPanel {
         graphics.setColor(Color.BLUE);
         graphics.drawString(name, (int) (width - (metrics.stringWidth(name) + 5)), metrics.getHeight() + 5);
     }
+
+    public String getName() {
+        return name;
+    }
 }

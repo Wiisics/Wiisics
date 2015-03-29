@@ -39,9 +39,6 @@ public class PhysicsProcessor {
             long lastTime = thisTime;
             thisTime = System.currentTimeMillis();
 
-            double pitch = calibratedData[0];
-            double roll = calibratedData[1];
-
             lastAcceleration[0] = acceleration[0];
             lastAcceleration[1] = acceleration[1];
             lastAcceleration[2] = acceleration[2];
@@ -154,7 +151,7 @@ public class PhysicsProcessor {
         return thisTime;
     }
 
-    private static double round(double value) {
+    public static double round(double value) {
         return value;
         //return Double.valueOf(newFormat.format(value));
     }

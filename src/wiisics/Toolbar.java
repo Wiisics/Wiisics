@@ -125,7 +125,10 @@ class Toolbar extends JToolBar {
     }
 
     public void refresh() {
-        double[] calibratedData = handler.getWiisics().getCalibratedData();
+        double[] calibratedData = new double[0];
+        if (handler.getWiisics() != null) {
+            calibratedData = handler.getWiisics().getCalibratedData();
+        }
 
         String pitchString = WiisicsHandler.RESOURCE_BUNDLE.getString("pitch") + " ";
         if (calibratedData.length == 5) {
